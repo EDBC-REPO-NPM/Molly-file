@@ -1,5 +1,5 @@
 {
-  "name": "ldb-js",
+  "name": "fsdb-js",
   "license": "MIT",
   "main": "main.js",
   "version": "1.0.1",
