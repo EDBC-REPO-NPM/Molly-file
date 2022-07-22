@@ -1,8 +1,8 @@
 {
-  "name": "lwdb",
-  "license": "ISC",
+  "name": "ldb-js",
+  "license": "MIT",
   "main": "main.js",
-  "version": "1.0.18",
+  "version": "1.0.1",
   "author": "bececrazy",
   "dependencies": {
     "axios": "^0.27.2",
@@ -15,7 +15,7 @@
     "build-web": "browserify ./webDB-base.js | uglifyjs -o ./webDB.js",
     "start": "node main"
   },
-  "repository": "https://github.com/Bececrazy/lwdb-lightweight-encrypted-database",
+  "repository": "https://github.com/Bececrazy/ldb-js",
   "description": "lw-db is a free and open source library for nodejs that allow you create a lightweight encrypted database using Json files",
   "keywords": [
     "json",
