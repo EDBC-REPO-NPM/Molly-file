@@ -1,8 +1,8 @@
-const modules = new Object();
+const output = new Object();
 
-try{ modules.createStreamDB = require('./module/streamDB'); } catch(e) { /*console.log(e)*/ }
-try{ modules.createMongoDB = require('./module/mongoDB'); } catch(e) { /*console.log(e)*/ }
-try{ modules.createLocalDB = require('./module/localDB'); } catch(e) { /*console.log(e)*/ }
-try{ modules.createWebDB = require('./module/webDB'); } catch(e) { /*console.log(e)*/ }
+try{ output.streamDB = require('./module/streamDB'); } catch(e) { /*console.log(e)*/ }
+try{ output.mongoDB = require('./module/mongoDB'); } catch(e) { /*console.log(e)*/ }
+try{ output.localDB = require('./module/localDB'); } catch(e) { /*console.log(e)*/ }
+try{ output.webDB = require('./module/webDB'); } catch(e) { /*console.log(e)*/ }
 
-module.exports = modules;
+module.exports = output;

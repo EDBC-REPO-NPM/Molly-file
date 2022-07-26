@@ -1,4 +1,4 @@
-const crypto = require('crypto-js')
+const crypto = require('crypto-js');
 
 //TODO: Function ---------------------------------------------------------------------------------//
 
@@ -50,10 +50,10 @@ const JsonFormatter = {
 
 const init = function( _table,_config,_self ){
 	return {
-		_i: 0,
-		_res: new Array(),
-		_itr: _createNewTable_( _table ),
 		_cfg: !_config ? _self.default : _config,
+		_itr: _createNewTable_( _table ),
+		_res: new Array(),
+		_i: 0,
 	}
 };
 
@@ -83,11 +83,9 @@ const _createNewHash_ = function( _object ){
 class createWebDB{
 
 	constructor( _password ){
-
 		this.encrypted = false
 		this.events = new Object()
 		this.default = { offset: 0, length: 100 }
-		
 		if( !crypto ) return console.log(' please import libs.crypto ');
 		if( _password ){
 			this.password = _password;
@@ -394,7 +392,4 @@ class createWebDB{
 }
 
 // TODO: export --------------------------------------------------------------------------------------//
-module.exports = { 
-	createWebDB: createWebDB,
-	store: store,
-};
+module.exports = createWebDB;

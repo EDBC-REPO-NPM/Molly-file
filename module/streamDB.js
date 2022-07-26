@@ -46,10 +46,10 @@ const init = function( _table,_config,_self ){
 		axios.get(`${_self.path}/${_table}.json`,{responseType:'stream'})
 		.then( ({data})=>{
 			res({
-				_i: 0,
-				_res: new Array(),
-				_cfg: !_config ? _self.default : _config,
 				_itr: readline.createInterface({ input: data }),
+				_cfg: !_config ? _self.default : _config,
+				_res: new Array(),
+				_i: 0,
 			});
 		}) .catch( e=>rej() );
 	});

@@ -41,12 +41,12 @@ const JsonFormatter = {
 
 const init = function( _table,_config,_self ){
 	return {
-		_i: 0,
-		_res: new Array(),
-		_path: `${_self.path}/${_table}.json`,
-		_tmp: `${_self.path}/${_table}_tmp.json`,
-		_cfg: !_config ? _self.default : _config,
 		_itr: readline.createInterface( createNewTable( `${_self.path}/${_table}.json` ) ),
+		_cfg: !_config ? _self.default : _config,
+		_tmp: `${_self.path}/${_table}_tmp.json`,
+		_path: `${_self.path}/${_table}.json`,
+		_res: new Array(),
+		_i: 0,
 	}
 };
 
