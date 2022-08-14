@@ -1,77 +1,197 @@
-const readline = require('./readline');
-const fetch = require('axios');
+
+const readline = require('readline');
+const crypto = require('crypto-js');
+const axios = require('axios');
 const fs = require('fs');
+
+//TODO: Function ---------------------------------------------------------------------------------//
+function slugify(str) { 
+	const map = {
+		'o' : 'ó|ò|ô|õ|ö|Ó|Ò|Ô|Õ|Ö',
+		'a' : 'á|à|ã|â|ä|À|Á|Ã|Â|Ä',
+	   	'e' : 'é|è|ê|ë|É|È|Ê|Ë',
+	   	'i' : 'í|ì|î|ï|Í|Ì|Î|Ï',
+	   	'u' : 'ú|ù|û|ü|Ú|Ù|Û|Ü',
+		'c' : 'ç|Ç','n':'ñ|Ñ',
+		''  : /\s+|\W+/,
+	};	
+	for (var pattern in map) { 
+		str=str.replace( new RegExp(map[pattern],'gi' ), pattern); 
+	}	return str.toLowerCase();
+}
+
+const JsonFormatter = {
+	'stringify': function(cipherParams) {
+    	var jsonObj = { ct: cipherParams.ciphertext.toString(crypto.enc.Base64) };
+    	if (cipherParams.salt) jsonObj.s = cipherParams.salt.toString();
+	    if (cipherParams.iv) jsonObj.iv = cipherParams.iv.toString(); 
+	    return new Buffer(JSON.stringify(jsonObj)).toString('base64');
+  	},
+
+  	'parse': function(jsonStr) {
+    	var jsonObj = JSON.parse( new Buffer(jsonStr,'base64').toString('UTF-8'));
+    	var cipherParams = crypto.lib.CipherParams.create({
+     	 	ciphertext: crypto.enc.Base64.parse(jsonObj.ct)
+    	});
+    	if (jsonObj.iv) cipherParams.iv = crypto.enc.Hex.parse(jsonObj.iv);
+    	if (jsonObj.s) cipherParams.salt = crypto.enc.Hex.parse(jsonObj.s);
+    	return cipherParams;
+ 	}
+};
 
 //TODO: Optimization FUnctions -------------------------------------------------------------------//
 
-const _default = { offset: 0, length: 100 };
-
 const init = function( _table,_config,_self ){
-	return new Promise( (response,reject)=>{
-		const path = `${_self.path}/${_table}.json`;
-		fetch.get(path,{responseType:'stream'}).then(({data})=>{
-			response({
-				_cfg: config(_config),
-				_path: null,
-				_tmp: null,
-				_tbl: data,
+	return new Promise( (res,rej)=>{
+		axios.get(`${_self.path}/${_table}.json`,{responseType:'stream'})
+		.then( ({data})=>{
+			res({
+				_itr: readline.createInterface({ input: data }),
+				_cfg: !_config ? _self.default : _config,
+				_res: new Array(),
+				_i: 0,
 			});
-		});
+		}) .catch( e=>rej() );
 	});
 };
 
-function config(_config){
-	if( !_config ) return _default;
-    Object.keys(_config).map((x)=>{
-        _default[x] = _config[x];
-    }); return _default;
+const lineConstrain = function( _i,_config ){
+	if( _i >= parseInt(_config.length)+parseInt(_config.offset) ) return 1;
+	else if ( _i < parseInt(_config.offset) ) return -1
+	else return 0;
 }
 
 //TODO: localDB Class ----------------------------------------------------------------------------//
 
 class streamDB{
 
-	constructor( _object ){
-		if( _object.pass ){
-			this.password = _object.pass;
-		} 	this.path = _object.path;
+	encrypted = false
+	events = new Object()
+	default = { offset: 0, length: 100 }
+
+	constructor( object ){
+		if( object.pass ){
+			this.password = object.pass;
+			this.encrypted = true;
+		} 	this.path = object.path;
 	}
 	
-	// TODO: Searching functions --------------------------------------------------- //
-	list( _table, _config ){
-		return new Promise( async(response,reject)=>{ try{
-			const { _cfg,_tbl,_tmp,_path } = await init( _table,_config,this );
-			let data = await readline.list( this,_tbl,_cfg );
-				data = data.map(x=>{ return JSON.parse(x) });
-			response({ data:data, table:_table });
-		} catch(e) { reject(e); }}); 
+	decrypt( _message,_password=this.password,_encrypted=this.encrypted ){ 
+		try{
+			if( _encrypted )
+			return crypto.AES.decrypt( _message,_password,{
+					format: JsonFormatter
+				}).toString(  crypto.enc.Utf8 );
+			return _message;
+		} catch(e) {
+			return _message;
+		}
 	}
 
+	// TODO: Searching functions //
+	list( _table, _config ){
+		return new Promise( async(res,rej)=>{ try{
+
+			let { _i,_cfg,_itr,_res } = await init( _table,_config,this );
+
+			_itr.on( 'line',( encryptedLine )=>{ try{
+				const line = this.decrypt( encryptedLine );
+				const cns = lineConstrain( _i, _cfg );
+				if( cns == 0 ) { _res.push( JSON.parse( line ) );
+				} else if( cns == 1 ) _itr.close(); 
+			} catch(e) { rej(`the db can be decripted: ${e}`) }
+			_i++; });
+
+			_itr.on( 'close',()=>{ res({
+				table:_table,
+				data:_res,
+			}); });
+
+		} catch(e) { rej( e ); } }); 
+	}
+	
 	find( _table, _target, _config ){
-		return new Promise( async(response,reject)=>{ try{
-			const { _cfg,_tbl,_tmp,_path } = await init( _table,_config,this );
-			let data = await readline.find( this,_tbl,_target,_cfg );
-				data = data.map(x=>{ return JSON.parse(x) });
-			response({ data:data, table:_table });
-		} catch(e) { reject(e); }}); 
+		return new Promise( async(res,rej)=>{ try{
+
+			let { _i,_cfg,_itr,_res } = await init( _table,_config,this );
+
+			_itr.on( 'line',( encryptedLine )=>{ 
+				try{
+					const line = this.decrypt( encryptedLine );
+					const keys = Object.keys( _target );
+					const data = JSON.parse( line );
+
+					const regex = ( x )=>{
+						const target = slugify(_target[x].toString());
+						const info = slugify(data[x].toString());
+						const regex = new RegExp(target,'gi');
+						return regex.test(info);
+					}
+
+					const every = keys.every( (x)=>{return regex(x)} );
+
+					if( every ){
+						const cns = lineConstrain( _i, _cfg );
+						if( cns == 0 ) _res.push( data );
+						else if( cns == 1 ) _itr.close(); 
+					_i++;}
+
+				} catch(e) { rej(`the db can be decripted: ${e}`) }
+			});
+
+			_itr.on( 'close',()=>{ res({
+				table:_table,
+				data:_res,
+			}); });
+
+		} catch(e) { rej( e ); } }); 
 	}
 
 	match( _table,_match,_config ){
-		return new Promise( async(response,reject)=>{ try{
-			const { _cfg,_tbl,_tmp,_path } = await init( _table,_config,this );
-			let data = await readline.match( this,_tbl,_match,_cfg );
-				data = data.map(x=>{ return JSON.parse(x) });
-			response({ data:data, table:_table });
-		} catch(e) { reject(e); }}); 
+		return new Promise( async(res,rej)=>{ try{
+
+			let { _i,_cfg,_itr,_res } = await init( _table,_config,this );
+
+			_itr.on( 'line',( encryptedLine )=>{ try{
+				const regex = new RegExp(slugify(_match),'gi');
+				const line = this.decrypt( encryptedLine );
+				if( regex.test(slugify(line)) ){
+					const cns = lineConstrain( _i, _cfg );
+					if( cns == 0 ) _res.push( JSON.parse( line ) );
+					else if( cns == 1 ) _itr.close(); 
+				_i++;}
+			} catch(e) { rej(`the db can be decripted: ${e}`) }	
+			});
+
+			_itr.on( 'close',()=>{ res({
+				table:_table,
+				data:_res,
+			}); });
+
+		} catch(e) { rej( e ); } }); 
 	}
 
 	hash( _table, _hash ){
-		return new Promise( async(response,reject)=>{ try{
-			const { _cfg,_tbl,_tmp,_path } = await init( _table,null,this );
-			let data = await readline.hash( this,_tbl,_hash );
-				data = data.map(x=>{ return JSON.parse(x) });
-			response({ data:data, table:_table });
-		} catch(e) { reject(e); }}); 
+		return new Promise( async(res,rej)=>{ try{
+
+			let { _i,_cfg,_itr,_res } = await init( _table,null,this );
+
+			_itr.on( 'line',( encryptedLine )=>{ try{
+				const line = this.decrypt( encryptedLine );
+				const data = JSON.parse( line );
+				if( data.hash == _hash ){
+					_res.push( data );
+					_itr.close();
+				}
+			} catch(e) { rej(`the db can be decripted: ${e}`) }
+			});
+
+			_itr.on( 'close',()=>{ res({
+				table:_table,
+				data:_res,
+			}); });
+
+		} catch(e) { rej( e ); } }); 
 	}
 
 }
