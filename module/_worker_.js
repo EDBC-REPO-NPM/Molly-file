@@ -28,8 +28,8 @@ function _init_(){
 
 (()=>{
     try{
-        console.log('molly-db is running, please wait');
         http.createServer( app ).listen( query.port,()=>{
+            console.log('molly-db is running, please wait');
             _init_().then(()=>{
                 worker.parentPort.postMessage(
                     `server started -> http://localhost:${query.port}`

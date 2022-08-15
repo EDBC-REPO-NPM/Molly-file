@@ -63,9 +63,10 @@ function match( _params ){
         const regex = new RegExp(crypto.slugify(_params.target),'gi');
         const target = crypto.slugify(x);
         if( regex.test(target) ) result.push(x);
-    }).slice(
+    });
+    return result.map(x=>JSON.parse(x)).slice(
         _params.offset, Number(_params.offset)+Number(_params.length)
-    );  return result.map(x=>JSON.parse(x));
+    );
 }
 
 function hash( _params ){
@@ -73,9 +74,10 @@ function hash( _params ){
     db[_params.db][_params.table].map((x)=>{
         const regex = new RegExp(_params.target,'gi');
         if( regex.test(x) ) result.push(x);
-    }).slice(
+    });
+    return result.map(x=>JSON.parse(x)).slice(
         _params.offset, Number(_params.offset)+Number(_params.length)
-    );  return result.map(x=>JSON.parse(x));
+    );
 }
 
 /* --------------------------------------------------------------------------------------- */
