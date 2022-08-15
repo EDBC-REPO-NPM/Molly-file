@@ -28,7 +28,7 @@ class molly_db{
             if( this.worker ) return console.log(`server is running`);
 
             this.worker = new worker.Worker(
-                   `${__dirname}/module/_worker_`,{
+                   `${__dirname}/module/_worker_.js`,{
                     env: worker.SHARE_ENV,
                     workerData: this
                 }
