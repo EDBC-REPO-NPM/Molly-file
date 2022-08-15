@@ -1,13 +1,10 @@
 
-function text( _data ){
-    res.writeHead(200,{'contetn-type':'text/plain'});
-    res.end( _data );
-}
-
 function error( _error ){
-    res.writeHead(200,{'contetn-type':'text/plain'});
-    res.end(`error: ${_error.message}`);
-    console.log(_error);
+    res.writeHead(200,{'contetn-type':'application/json'});
+    res.end(JSON.stringify([{
+        status: 'error',
+        message: _error,
+    }])); console.log(_error);
 }
 
 function json( _data ){
@@ -100,11 +97,11 @@ async function push( _params ){
     db[_params.db][_params.table].push( body );
 
     modifyDB( _params.db,_params.table );
-    return {
+    return [{
         database: _params.db,
         table: _params.table,
         status: 'pushed'
-    };
+    }];
 
 }
 
@@ -116,11 +113,11 @@ async function splice( _params ){
     );
 
     modifyDB( _params.db,_params.table );
-    return {
+    return [{
         database: _params.db,
         table: _params.table,
         status: 'spliced'
-    };
+    }];
 }
 
 async function unshift( _params ){
@@ -129,11 +126,11 @@ async function unshift( _params ){
     db[_params.db][_params.table].unshift( body );
 
     modifyDB( _params.db,_params.table );
-    return {
+    return [{
         database: _params.db,
         table: _params.table,
         status: 'unshifted'
-    };
+    }];
 }
 
 /* --------------------------------------------------------------------------------------- */
@@ -150,10 +147,10 @@ function addDB( _params ){
     db[_params.db] = new Array(); 
     fs.writeFileSync( init,JSON.stringify(db._init_) );
 
-    return {
+    return [{
         database: _params.db,
         status: 'DB added'
-    };
+    }];
 
 }
 
@@ -172,11 +169,11 @@ function removeDB( _params ){
     db[_params.db] = new Array();
     fs.writeFileSync( init,JSON.stringify(db._init_) );
 
-    return {
+    return [{
         database: _params.db,
         table: _params.table,
         status: 'DB deleted'
-    };
+    }];
     
 }
 
@@ -215,11 +212,11 @@ function addTable( _params ){
     db[_params.db][_params.table] = new Array();
     modifyDB( _params.db,_params.table );
     
-    return {
+    return [{
         database: _params.db,
         table: _params.table,
         status: 'table added'
-    };
+    }];
 
 }
 
@@ -237,11 +234,11 @@ function removeTable( _params ){
     delete db[_params.db][_params.table];
     modifyDB( _params.db,_params.table );
 
-    return {
+    return [{
         database: _params.db,
         table: _params.table,
         status: 'table removed'
-    };
+    }];
 
 }
 
@@ -277,7 +274,7 @@ function removeTable( _params ){
 
         else error('Oops something went wrong');
 
-    } catch(e) { error(e); }
+    } catch(e) { error(e.message); }
 })();
 
 /* --------------------------------------------------------------------------------------- */

@@ -34,9 +34,9 @@ class molly_db{
                 }
             );
 
-            this.worker.on('exit',(err)=>{ });
-            this.worker.on('error',(err)=>{ });
-            this.worker.on('message',(msg)=>{ console.log(msg); response(); });
+            this.worker.on('exit',(err)=>{ reject('') });
+            this.worker.on('error',(err)=>{ reject('') });
+            this.worker.on('message',(msg)=>{ response('') });
         });
     }
 

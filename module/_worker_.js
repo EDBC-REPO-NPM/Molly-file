@@ -29,11 +29,15 @@ function _init_(){
 (()=>{
     try{
         http.createServer( app ).listen( query.port,()=>{
-            console.log('molly-db is running, please wait');
+            console.log('molly-db cluster is running, please wait');
             _init_().then(()=>{
-                worker.parentPort.postMessage(
-                    `server started -> http://localhost:${query.port}`
-                );
+                worker.parentPort.postMessage({
+                    protocol: 'HTTP',
+                    status: 'started',
+                    workerID: process.pid,
+                    msg: 'molly-db is running',
+                    server: `http://localhost:${query.port}`,
+                });
             }).catch(e=>{ process.exit(1); });
         });
     } catch(e) { process.exit(1); }
