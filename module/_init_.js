@@ -1,17 +1,16 @@
 
 function fillDB( _db, _table, _path ){
-    return new Promise((response,reject)=>{
+    return new Promise(async(response,reject)=>{
 
         let _itr = undefined;
 
-        if( (/^http/).test(_path) )
-            fetch(_path).then(({data})=>{
-                _itr = readline.createInterface({
-                    input: data
-                });
-            }).catch((e)=>{ console.log(e);process.exit(1); }) 
-
-        else    
+        if( (/^http/).test(_path) ){
+            const stream = await fetch.get(_path,{responseType:'stream'});
+            _itr = readline.createInterface({
+                input: stream.data
+            });
+        
+        } else    
             _itr = readline.createInterface({
                 input: fs.createReadStream(_path)
             });
@@ -30,10 +29,16 @@ function fillDB( _db, _table, _path ){
     try {
 
         const path = `${query.path}/_init_.json`;
-        db._buff_ = fs.readFileSync( path );
-        db._init_ = JSON.parse( db._buff_ );
-        db._path_ = query.path;
 
+        if( (/^http/).test(query.path) ){
+            const stream = await fetch.get(path);
+            db._init_ = stream.data;
+        } else{ 
+            db._buff_ = fs.readFileSync( path );
+            db._init_ = JSON.parse( db._buff_ );
+        }
+
+        db._path_ = query.path;
         for( var i in db._init_.DB ){
 
             const DB = db._init_.DB[i];
@@ -59,5 +64,5 @@ function fillDB( _db, _table, _path ){
 
         fs.writeFileSync( path,db._init_ );
 
-    } response();
+    }   response();
 })();

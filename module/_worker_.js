@@ -29,20 +29,14 @@ function _init_(){
 (()=>{
     try{
         console.log('molly-db is running, please wait');
-        _init_().then(()=>{
-            http.createServer( app ).listen( query.port,()=>{
+        http.createServer( app ).listen( query.port,()=>{
+            _init_().then(()=>{
                 worker.parentPort.postMessage(
                     `server started -> http://localhost:${query.port}`
                 );
-            });
-        }).catch(e=>{
-            worker.parentPort.postMessage(`error: ${e}`);    
-            console.log(e); process.exit(1);
+            }).catch(e=>{ process.exit(1); });
         });
-    } catch(e) {
-        worker.parentPort.postMessage(`error: server exist`);
-        console.log(e); process.exit(1);
-    }
+    } catch(e) { process.exit(1); }
 })();
 
 /* --------------------------------------------------------------------------------------- */

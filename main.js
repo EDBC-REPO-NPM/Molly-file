@@ -28,14 +28,14 @@ class molly_db{
             if( this.worker ) return console.log(`server is running`);
 
             this.worker = new worker.Worker(
-                './module/_worker_',{
+                   `${__dirname}/module/_worker_`,{
                     env: worker.SHARE_ENV,
                     workerData: this
                 }
             );
 
-            this.worker.on('exit',(err)=>{ console.log(err) });
-            this.worker.on('error',(err)=>{ console.log(err) });
+            this.worker.on('exit',(err)=>{ });
+            this.worker.on('error',(err)=>{ });
             this.worker.on('message',(msg)=>{ console.log(msg); response(); });
         });
     }
