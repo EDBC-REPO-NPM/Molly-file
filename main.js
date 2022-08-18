@@ -22,7 +22,6 @@ class molly_db{
             if( opt.pass )
                 this.pass = opt.pass;
                 this.port = opt.port || 27017;
-                this.type = opt.type || 'local';
                 this.path = opt.path.replace(/^\./,process.cwd());
             
             if( this.worker ) return console.log(`server is running`);
@@ -34,9 +33,9 @@ class molly_db{
                 }
             );
 
-            this.worker.on('exit',(err)=>{ reject('') });
-            this.worker.on('error',(err)=>{ reject('') });
-            this.worker.on('message',(msg)=>{ response('') });
+            this.worker.on('exit',(err)=>{ console.log(err); reject() });
+            this.worker.on('error',(err)=>{ console.log(err); reject() });
+            this.worker.on('message',(msg)=>{ console.log(msg); response() });
         });
     }
 

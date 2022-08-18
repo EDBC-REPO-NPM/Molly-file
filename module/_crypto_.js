@@ -28,19 +28,23 @@ const JsonFormatter = {
 /* --------------------------------------------------------------------------------------- */
 
 output.slugify = (str)=>{ 
-	const map = {
-		'c' : 'ç',
-		'n' : 'ñ',
-		'e' : 'é|è|ê|ë',
-		'i' : 'í|ì|î|ï',
-		'u' : 'ú|ù|û|ü',
-		'o' : 'ó|ò|ô|õ|ö',
-		'a' : 'á|à|ã|â|ä',
-		''  : /\s+|\W+/,
-	};	
-	for (var pattern in map) { 
-		str=str.replace( new RegExp(map[pattern],'gi' ), pattern); 
-	}	return str.toLowerCase();
+	[
+		['c','ç'],
+		['n','ñ'],
+		['e','é|è|ê|ë'],
+		['i','í|ì|î|ï'],
+		['u','ú|ù|û|ü'],
+		['o','ó|ò|ô|õ|ö'],
+		['a','á|à|ã|â|ä'],
+		['' ,/\s+|\W+/,]
+	].map(x=>{
+		const regex = new RegExp(x[1],'gi');
+		str = str.replace( regex,x[0] );
+	});	return str.toLowerCase();
+}
+
+output.hash = (data,nonce)=>{
+	return crypto.SHA256(Math.random+data+nonce).toString();
 }
 
 output.encrypt = ( _message,_password )=>{ 

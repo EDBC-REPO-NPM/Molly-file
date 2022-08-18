@@ -43,7 +43,8 @@ function fillDB( _db, _table, _path ){
 
             const DB = db._init_.DB[i];
             const name = DB.name;
-    
+            delete db[name];
+
             db[name] = new Object();
     
             for( var j in DB.tables ){

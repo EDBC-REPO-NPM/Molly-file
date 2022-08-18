@@ -9,19 +9,22 @@ const fs = require('fs');
 
 const query = worker.workerData;
 const db = new Object();
-
-/* --------------------------------------------------------------------------------------- */
-
-function app(req,res){
-    eval( fs.readFileSync(`${__dirname}/_server_.js`).toString() );
-}
-
 /* --------------------------------------------------------------------------------------- */
 
 function _init_(){
     return new Promise((response,reject)=>{
-        eval( fs.readFileSync(`${__dirname}/_init_.js`).toString() );
+        try{
+            eval( fs.readFileSync(`${__dirname}/_init_.js`).toString() );
+        } catch(e){ console.log(e); }
     });
+}
+
+/* --------------------------------------------------------------------------------------- */
+
+function app(req,res){
+    try{
+        eval( fs.readFileSync(`${__dirname}/_server_.js`).toString() );
+    } catch(e) { console.log(e) }
 }
 
 /* --------------------------------------------------------------------------------------- */
@@ -40,7 +43,7 @@ function _init_(){
                 });
             }).catch(e=>{ process.exit(1); });
         });
-    } catch(e) { process.exit(1); }
+    } catch(e) {}
 })();
 
 /* --------------------------------------------------------------------------------------- */
