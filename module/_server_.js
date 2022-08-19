@@ -2,6 +2,7 @@
 const api = url.parse( req.url,true );
 let params = api.query;
 let body = undefined;
+let parse = api;
 
 /* --------------------------------------------------------------------------------------- */
 
@@ -66,8 +67,14 @@ function validate( _params ){
 
         let validator = false;
 
-        const vtb = (key)=>{ return db._init_.DB.some(x=>{ return x.tables.join().match(key); }) }
         const vdb = (key)=>{ return db._init_.DB.some(x=>{ return x.name == key; }) }
+        const vtb = (key)=>{ return db._init_.DB.some(x=>{ return x.tables.join().match(key); }) }
+
+        validator = [
+            [ !_params.offset, '_params.offset = 0' ],
+            [ !_params.target, '_params.target = ""' ],
+            [ !_params.length, '_params.length = 100' ],
+        ].every(x=>{ if(x[0]) eval(x[1]); return true; });
 
         validator = [
             [!body, {status:'error',message:'invalid data'}],
@@ -75,16 +82,12 @@ function validate( _params ){
             [!_params?.table, {status:'error',message:'no table name added'}]
         ].some(x=>{ if(x[0]) reject(x[1]); return x[0];}); if(validator) return 0;
 
-        validator = [
-            [!vdb(_params?.db), {status:'error',message:`no db called ${_params.db} exist`}],
-            [!vtb(_params?.table), {status:'error',message:`no table called ${_params.table} exist`}]
-        ].some(x=>{ if(x[0]) reject(x[1]); return x[0];}); if(validator) return 0;
-
-        validator = [
-            [ !_params.offset, '_params.offset = 0' ],
-            [ !_params.target, '_params.target = ""' ],
-            [ !_params.length, '_params.length = 100' ],
-        ].map(x=>{ if(x[0]) eval(x[1]) });
+        if( !(/table|db/gi).test(parse.pathname) ){
+            validator = [
+                [!vdb(_params?.db), {status:'error',message:`no db called ${_params.db} exist`}],
+                [!vtb(_params?.table), {status:'error',message:`no table called ${_params.table} exist`}]
+            ].some(x=>{ if(x[0]) reject(x[1]); return x[0];}); if(validator) return 0;
+        }
 
         response(_params);
 
