@@ -19,21 +19,35 @@ function json( _data ){
 
 /* --------------------------------------------------------------------------------------- */
 
+function bodyParser( _data ){
+
+    const date = Date.now();
+    const result = new Array();
+
+    if( typeof _data.length == 'number' ){
+        for( var i in _data ){
+            if(!_data[i]?.hash)
+                _data[i].hash = crypto.hash( date,0 );
+            result.push(JSON.stringify(_data[i]));
+        }
+    } else {
+        if(!_data?.hash)
+            _data.hash = crypto.hash( date,0 );
+        result.push(JSON.stringify(_data));
+    }   return result;
+
+}
+
 function getBody(){
     return new Promise((response,reject)=>{
         try{
-            if( req.method == 'POST' ){
+            if( req.method == 'POST' || (/push|unshift|splice|update/).test(api.pathname) ){
                 const data = new Array();
                 req.on('data',(chunk)=>{ data.push(chunk); });
                 req.on('close',()=>{ try{
-                    const buff = Buffer.concat(data).toString();
-                    const object = JSON.parse(buff);
-                    const date = Date.now();
-                        
-                    if( !object.hash )
-                        object.hash = crypto.hash( date,0 );
-                        
-                    response(JSON.stringify(object)); 
+                    const buff = Buffer.concat(data);
+                    const json = JSON.parse(buff);                   
+                    response( bodyParser(json) ); 
                 } catch(e) { response(false) } });
             } else { response(true) }
         } catch(e) { response(false) } 
@@ -71,9 +85,9 @@ function validate( _params ){
         const vtb = (key)=>{ return db._init_.DB.some(x=>{ return x.tables.join().match(key); }) }
 
         validator = [
-            [ !_params.offset, '_params.offset = 0' ],
-            [ !_params.target, '_params.target = ""' ],
-            [ !_params.length, '_params.length = 100' ],
+            [ !_params?.offset, '_params.offset = 0' ],
+            [ !_params?.target, '_params.target = ""' ],
+            [ !_params?.length, '_params.length = 100' ],
         ].every(x=>{ if(x[0]) eval(x[1]); return true; });
 
         validator = [
@@ -139,7 +153,7 @@ function pop( _params ){
 
 async function push( _params ){
 
-    db[_params.db][_params.table].push( body );
+    db[_params.db][_params.table].push( ...body );
 
     save( _params ); return [{
         database: _params.db,
@@ -152,7 +166,7 @@ async function push( _params ){
 async function splice( _params ){
 
     db[_params.db][_params.table].splice(
-        _params.offset,_params.length,body
+        _params.offset,_params.length,...body
     );
 
     save( _params ); return [{
@@ -164,7 +178,7 @@ async function splice( _params ){
 
 async function unshift( _params ){
 
-    db[_params.db][_params.table].unshift( body );
+    db[_params.db][_params.table].unshift( ...body );
 
     save( _params ); return [{
         database: _params.db,
@@ -183,7 +197,7 @@ async function update( _params ){
     });
 
     if( !(index<0) ) 
-        db[_params.db][_params.table].splice( index,1,body );
+        db[_params.db][_params.table].splice( index,1,...body );
 
     save( _params ); return [{
         database: _params.db,
@@ -209,32 +223,17 @@ async function remove( _params ){
     }];
 }
 
-async function save( _params ){
-
-    modifyDB( _params.db,_params.table );
-    return [{
-        database: _params.db,
-        table: _params.table,
-        status: 'saved'
-    }];
-}
-
 /* --------------------------------------------------------------------------------------- */
 
 function addDB( _params ){
     try{
 
-        const init = `${query.path}/_init_.json`;
-
         db._init_.DB.push({
+            tables: [],
             name: _params.db,
-            tables: []
-        });
+        }); db[_params.db] = new Array(); 
     
-        db[_params.db] = new Array(); 
-        fs.writeFileSync( init,JSON.stringify(db._init_) );
-    
-        return [{
+        save( _params ); return [{
             database: _params.db,
             status: 'DB added'
         }];
@@ -245,7 +244,6 @@ function addDB( _params ){
 function removeDB( _params ){
     try{
 
-        const init = `${query.path}/_init_.json`;
         const i = db._init_.DB.findIndex(x=>{
             return x.name == _params.db
         }); 
@@ -254,11 +252,9 @@ function removeDB( _params ){
             const path = `${query.path}/${x}.json`;
             fs.unlinkSync(path);
         }); db._init_.DB.splice(i,1);
-    
         db[_params.db] = new Array();
-        fs.writeFileSync( init,JSON.stringify(db._init_) );
     
-        return [{
+        save( _params ); return [{
             database: _params.db,
             table: _params.table,
             status: 'DB deleted'
@@ -303,7 +299,7 @@ function addTable( _params ){
 
     db[_params.db][_params.table] = new Array();
     
-    return [{
+    save( _params ); return [{
         database: _params.db,
         table: _params.table,
         status: 'table added'
@@ -324,7 +320,7 @@ function removeTable( _params ){
     db._init_.DB[i].tables.splice(j,1);
     delete db[_params.db][_params.table];
 
-    return [{
+    save( _params ); return [{
         database: _params.db,
         table: _params.table,
         status: 'table removed'
@@ -339,6 +335,15 @@ function refresh( _params ){
         _init_().then(()=>{ response([{status: 'done'}]) })
         .catch((e)=>{ reject([{status:'error',message:e.message}]) });
     });
+}
+
+function save( _params ){
+    modifyDB( _params.db,_params.table );
+    return [{
+        database: _params.db,
+        table: _params.table,
+        status: 'saved'
+    }];
 }
 
 /* --------------------------------------------------------------------------------------- */

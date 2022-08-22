@@ -58,12 +58,10 @@ function fillDB( _db, _table, _path ){
 
     } catch(e) {
 
-        const path = `${query.path}/_init_.json`;
-        db._buff_ = fs.readFileSync( path );
+        db._init_ = { DB:[] };
         db._path_ = query.path;
-        db._init_ = { DB:[] }
-
-        fs.writeFileSync( path,db._init_ );
+        const path = `${query.path}/_init_.json`;
+        fs.writeFileSync( path,JSON.stringify(db._init_) );
 
     }   response();
 })();
