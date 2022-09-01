@@ -32,14 +32,10 @@ function app(req,res){
 (()=>{
     try{
         http.createServer( app ).listen( query.port,()=>{
-            console.log('molly-db cluster is running, please wait');
             _init_().then(()=>{
                 worker.parentPort.postMessage({
-                    protocol: 'HTTP',
-                    status: 'started',
-                    workerID: process.pid,
-                    msg: 'molly-db is running',
-                    server: `http://localhost:${query.port}`,
+                    protocol: 'HTTP', status: 'started',
+                    workerID: process.pid, port: query.port,
                 });
             }).catch(e=>{ process.exit(1); });
         });
