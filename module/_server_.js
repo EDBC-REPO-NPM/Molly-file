@@ -151,6 +151,16 @@ function pop( _params ){
 
 /* --------------------------------------------------------------------------------------- */
 
+function lengthOf( _params ){ return db[_params.db][_params.table].length; }
+function indexOf( _params ){ 
+    return db[_params.db][_params.table].indexOf(x=>{
+        const regex = new RegExp(_params.target,'gi');
+        return regex.test(x);
+    });
+}
+
+/* --------------------------------------------------------------------------------------- */
+
 async function push( _params ){
 
     db[_params.db][_params.table].push( ...body );
@@ -359,6 +369,9 @@ function save( _params ){
         else if( api.pathname == '/hash' ) json( await hash(params) )
         else if( api.pathname == '/match' ) json( await match(params) )
         else if( api.pathname == '/update' ) json( await update(params) )
+
+        else if( api.pathname == '/index' ) json( await indexOf(params) )
+        else if( api.pathname == '/lengt' ) json( await lengthOf(params) )
 
         /* Save Api */
         else if( api.pathname == '/save' ) json( await save(params) )

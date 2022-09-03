@@ -9,16 +9,18 @@ function fillDB( _db, _table, _path ){
             _itr = readline.createInterface({
                 input: stream.data
             });
+        } 
         
-        } else    
+        else if( fs.existsSync(_path) )
             _itr = readline.createInterface({
                 input: fs.createReadStream(_path)
             });
+        
+        else return response();    
 
-        _itr.on('close',()=>{ response() });
         _itr.on('line',(line)=>{
             db[_db][_table].push(crypto.decrypt( line,query.pass ));
-        });
+        }); _itr.on('close',()=>{ response() });
         
     });
 }
@@ -50,8 +52,7 @@ function fillDB( _db, _table, _path ){
             for( var j in DB.tables ){
                 const table = DB.tables[j];
                 const path = `${db._path_}/${table}.json`;
-                db[name][table] = new Array();
-                await fillDB( name,table,path );
+                db[name][table] = new Array(); await fillDB( name,table,path );
             }
     
         }
