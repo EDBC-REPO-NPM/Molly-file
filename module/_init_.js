@@ -4,19 +4,19 @@ function fillDB( _db, _table, _path ){
 
         let _itr = undefined;
 
-        if( (/^http/).test(_path) ){
+        if( (/^http/).test(_path) ){ try{
             const stream = await fetch.get(_path,{responseType:'stream'});
             _itr = readline.createInterface({
                 input: stream.data
-            });
-        } 
-        
+            })
+        } catch(e) { console.log(`error reading ${_path}`); return response(); }}
+
         else if( fs.existsSync(_path) )
             _itr = readline.createInterface({
                 input: fs.createReadStream(_path)
             });
         
-        else return response();    
+        else { console.log(`error reading ${_path}`); return response(); }     
 
         _itr.on('line',(line)=>{
             db[_db][_table].push(crypto.decrypt( line,query.pass ));

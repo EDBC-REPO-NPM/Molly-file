@@ -1,7 +1,7 @@
 const worker = require('worker_threads');
 const readline = require('readline');
 const crypto = require('./_crypto_');
-const {Buffer} = require('buffer'); 
+const { Buffer } = require('buffer'); 
 const fetch = require('axios');
 const http = require('http');
 const url = require('url');
@@ -13,8 +13,7 @@ const db = new Object();
 
 function _init_(){
     return new Promise((response,reject)=>{
-        try{
-            eval( fs.readFileSync(`${__dirname}/_init_.js`).toString() );
+        try{ eval( fs.readFileSync(`${__dirname}/_init_.js`).toString() );
         } catch(e){ console.log(e); }
     });
 }
@@ -22,24 +21,21 @@ function _init_(){
 /* --------------------------------------------------------------------------------------- */
 
 function app(req,res){
-    try{
-        eval( fs.readFileSync(`${__dirname}/_server_.js`).toString() );
+    try{ eval( fs.readFileSync(`${__dirname}/_server_.js`).toString() );
     } catch(e) { console.log(e) }
 }
 
 /* --------------------------------------------------------------------------------------- */
 
 (()=>{
-    try{
-        http.createServer( app ).listen( query.port,()=>{
-            _init_().then(()=>{
-                worker.parentPort.postMessage({
-                    protocol: 'HTTP', status: 'started',
-                    workerID: process.pid, port: query.port,
-                });
-            }).catch(e=>{ process.exit(1); });
-        });
-    } catch(e) {}
+    http.createServer( app ).listen( query.port,()=>{
+        _init_().then(()=>{
+            worker.parentPort.postMessage({
+                protocol: 'HTTP', status: 'started',
+                workerID: process.pid, port: query.port,
+            });
+        }).catch(e=>{ console.log(e); process.exit(1); });
+    });
 })();
 
 /* --------------------------------------------------------------------------------------- */

@@ -21,20 +21,13 @@ function json( _data ){
 
 function bodyParser( _data ){
 
-    const date = Date.now();
-    const result = new Array();
+    const date = Date.now(); _data = JSON.parse(_data);
+    const result = typeof _data != 'String' ? _data : [ _data ];
 
-    if( typeof _data.length == 'number' ){
-        for( var i in _data ){
-            if(!_data[i]?.hash)
-                _data[i].hash = crypto.hash( date,0 );
-            result.push(JSON.stringify(_data[i]));
-        }
-    } else {
-        if(!_data?.hash)
-            _data.hash = crypto.hash( date,0 );
-        result.push(JSON.stringify(_data));
-    }   return result;
+    return result.map(x=>{ if( !x?.hash )
+        x.hash = crypto.hash( date,Math.random() );
+        return JSON.stringify(x);
+    }) 
 
 }
 
@@ -45,9 +38,8 @@ function getBody(){
                 const data = new Array();
                 req.on('data',(chunk)=>{ data.push(chunk); });
                 req.on('close',()=>{ try{
-                    const buff = Buffer.concat(data);
-                    const json = JSON.parse(buff);                   
-                    response( bodyParser(json) ); 
+                    const buff = Buffer.concat(data);   
+                    response( bodyParser(buff) ); 
                 } catch(e) { response(false) } });
             } else { response(true) }
         } catch(e) { response(false) } 
@@ -141,12 +133,12 @@ function hash( _params ){
 
 /* --------------------------------------------------------------------------------------- */
 
-function shift( _params ){ 
-    const result = db[_params.db][_params.table].shift(); save( _params ); return result;
+async function shift( _params ){ 
+    const result = db[_params.db][_params.table].shift(); await save( _params ); return result;
 }
 
-function pop( _params ){ 
-    const result = db[_params.db][_params.table].pop(); save( _params ); return result; 
+async function pop( _params ){ 
+    const result = db[_params.db][_params.table].pop(); await save( _params ); return result; 
 }
 
 /* --------------------------------------------------------------------------------------- */
@@ -161,40 +153,26 @@ function indexOf( _params ){
 
 /* --------------------------------------------------------------------------------------- */
 
+async function unshift( _params ){
+
+    db[_params.db][_params.table].unshift( ...body );
+
+    await save( _params ); return [{
+        database: _params.db,
+        table: _params.table,
+        status: 'unshifted'
+    }];
+}
+
 async function push( _params ){
 
     db[_params.db][_params.table].push( ...body );
-
-    save( _params ); return [{
+    await save( _params ); return [{
         database: _params.db,
         table: _params.table,
         status: 'pushed'
     }];
 
-}
-
-async function splice( _params ){
-
-    db[_params.db][_params.table].splice(
-        _params.offset,_params.length,...body
-    );
-
-    save( _params ); return [{
-        database: _params.db,
-        table: _params.table,
-        status: 'spliced'
-    }];
-}
-
-async function unshift( _params ){
-
-    db[_params.db][_params.table].unshift( ...body );
-
-    save( _params ); return [{
-        database: _params.db,
-        table: _params.table,
-        status: 'unshifted'
-    }];
 }
 
 /* --------------------------------------------------------------------------------------- */
@@ -209,7 +187,7 @@ async function update( _params ){
     if( !(index<0) ) 
         db[_params.db][_params.table].splice( index,1,...body );
 
-    save( _params ); return [{
+    await save( _params ); return [{
         database: _params.db,
         table: _params.table,
         status: 'udated'
@@ -226,7 +204,7 @@ async function remove( _params ){
     if( !(index<0) )
         db[_params.db][_params.table].splice( index,1 );
 
-    save( _params ); return [{
+    await save( _params ); return [{
         database: _params.db,
         table: _params.table,
         status: 'removed'
@@ -235,7 +213,7 @@ async function remove( _params ){
 
 /* --------------------------------------------------------------------------------------- */
 
-function addDB( _params ){
+async function addDB( _params ){
     try{
 
         db._init_.DB.push({
@@ -243,7 +221,7 @@ function addDB( _params ){
             name: _params.db,
         }); db[_params.db] = new Array(); 
     
-        save( _params ); return [{
+        await save( _params ); return [{
             database: _params.db,
             status: 'DB added'
         }];
@@ -251,7 +229,7 @@ function addDB( _params ){
     } catch(e) {  }
 }
 
-function removeDB( _params ){
+async function removeDB( _params ){
     try{
 
         const i = db._init_.DB.findIndex(x=>{
@@ -264,7 +242,7 @@ function removeDB( _params ){
         }); db._init_.DB.splice(i,1);
         db[_params.db] = new Array();
     
-        save( _params ); return [{
+        await save( _params ); return [{
             database: _params.db,
             table: _params.table,
             status: 'DB deleted'
@@ -273,18 +251,19 @@ function removeDB( _params ){
     } catch(e) {  }
 }
 
-function modifyDB( _name, _table ){
+async function modifyDB( _name, _table ){
     try{
 
         const init = `${query.path}/_init_.json`;
         const path = `${query.path}/${_table}.json`;
-    
         fs.writeFileSync( init,JSON.stringify(db._init_) );
     
         try {
             const length = db[_name][_table].length;
-            if( length>0 ) encryptDB( _name, _table, path );
-            else fs.writeFileSync( path,'' );
+            if( length>0 ) 
+                await encryptDB( _name, _table, path );
+            else 
+                fs.writeFileSync( path,'' );
         } catch(e) { 
             fs.unlinkSync( path ); 
         }  
@@ -294,7 +273,7 @@ function modifyDB( _name, _table ){
 
 /* --------------------------------------------------------------------------------------- */
 
-function addTable( _params ){
+async function addTable( _params ){
 
     if( db[_params.db][_params.table] )
     return {
@@ -309,7 +288,7 @@ function addTable( _params ){
 
     db[_params.db][_params.table] = new Array();
     
-    save( _params ); return [{
+    await save( _params ); return [{
         database: _params.db,
         table: _params.table,
         status: 'table added'
@@ -317,7 +296,7 @@ function addTable( _params ){
 
 }
 
-function removeTable( _params ){
+async function removeTable( _params ){
 
     const i = db._init_.DB.findIndex(x=>{
         return x.name == _params.db;
@@ -330,7 +309,7 @@ function removeTable( _params ){
     db._init_.DB[i].tables.splice(j,1);
     delete db[_params.db][_params.table];
 
-    save( _params ); return [{
+    await save( _params ); return [{
         database: _params.db,
         table: _params.table,
         status: 'table removed'
@@ -347,8 +326,8 @@ function refresh( _params ){
     });
 }
 
-function save( _params ){
-    modifyDB( _params.db,_params.table );
+async function save( _params ){
+    await modifyDB( _params.db,_params.table );
     return [{
         database: _params.db,
         table: _params.table,
