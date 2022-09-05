@@ -27,7 +27,7 @@ function fillDB( _db, _table, _path ){
 
 /* --------------------------------------------------------------------------------------- */
 
-(async()=>{
+(()=>{ return new Promise(async(response,reject)=>{
     try {
 
         const path = `${query.path}/_init_.json`;
@@ -65,4 +65,6 @@ function fillDB( _db, _table, _path ){
         fs.writeFileSync( path,JSON.stringify(db._init_) );
 
     }   response();
-})();
+
+
+}); })();

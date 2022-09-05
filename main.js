@@ -20,12 +20,11 @@ function startWorker(_path,_self){
         const wrk = new worker.Worker(
             _path,{ workerData:_self,
                 env: worker.SHARE_ENV,
-        }); wrk.on('message',(msg)=>{ 
-            console.log(msg)
-            response(msg) 
         }); wrk.on('exit',(err)=>{ console.log(err);
             response(startWorker(_path,_self));
-        }); 
+        }); wrk.on('message',(msg)=>{ 
+            console.log(msg); response(msg) 
+        });
     });
 }
 

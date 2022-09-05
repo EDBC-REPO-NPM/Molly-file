@@ -12,10 +12,8 @@ const db = new Object();
 /* --------------------------------------------------------------------------------------- */
 
 function _init_(){
-    return new Promise((response,reject)=>{
-        try{ eval( fs.readFileSync(`${__dirname}/_init_.js`).toString() );
-        } catch(e){ console.log(e); }
-    });
+    try{ return eval( fs.readFileSync(`${__dirname}/_init_.js`).toString() );
+    } catch(e){ console.log(e); }
 }
 
 /* --------------------------------------------------------------------------------------- */
@@ -27,15 +25,11 @@ function app(req,res){
 
 /* --------------------------------------------------------------------------------------- */
 
-(()=>{
-    http.createServer( app ).listen( query.port,()=>{
-        _init_().then(()=>{
-            worker.parentPort.postMessage({
-                protocol: 'HTTP', status: 'started',
-                workerID: process.pid, port: query.port,
-            });
-        }).catch(e=>{ console.log(e); process.exit(1); });
-    });
-})();
+(()=>{ http.createServer( app ).listen( query.port,()=>{
+    _init_().then(()=>{ worker.parentPort.postMessage({
+        workerID: process.pid, port: query.port,
+        protocol: 'HTTP', status: 'started',
+    }); }).catch(e=>{ process.exit(1); });
+}); })();
 
 /* --------------------------------------------------------------------------------------- */
