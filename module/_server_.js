@@ -24,8 +24,6 @@ function bodyParser( _data ){
     const date = Date.now(); _data = JSON.parse(_data);
     const result = _data.length ? _data : [_data];
 
-    console.log( _data, typeof _data, _data.length, result );
-
     return result.map(x=>{ if( !x?.hash )
         x.hash = crypto.hash( date,Math.random() );
         return JSON.stringify(x);
