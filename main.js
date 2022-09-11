@@ -15,30 +15,12 @@ function config( _config ) {
 
 /* --------------------------------------------------------------------------------------- */
 
-function startWorker(_path,_self){
-    return new Promise((response,reject)=>{
-        const wrk = new worker.Worker(
-            _path,{ workerData:_self,
-                env: worker.SHARE_ENV,
-        }); wrk.on('exit',(err)=>{ console.log(err);
-            response(startWorker(_path,_self));
-        }); wrk.on('message',(msg)=>{ 
-            console.log(msg); response(msg) 
-        });
-    });
-}
-
-/* --------------------------------------------------------------------------------------- */
-
 class molly_db{
 
-    constructor( opt ){
-        if( opt.pass )
-            this.pass = opt.pass;
-            this.port = opt.port || 27017;
-            this.path = opt.path.replace(/^\./,process.cwd());
-            this.workerPath = `${__dirname}/module/_worker_.js`;
-        return startWorker( this.workerPath,this );
+    constructor( opt ){ if( opt.pass )
+        this.pass = opt.pass; this.port = opt.port || 27017;
+        this.path = opt.path.replace( /^\./,process.cwd() );
+        return require(`${__dirname}/module/_worker_.js`)(this);
     }
 
 }

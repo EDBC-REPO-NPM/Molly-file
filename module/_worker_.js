@@ -2,13 +2,17 @@ const worker = require('worker_threads');
 const readline = require('readline');
 const crypto = require('./_crypto_');
 const { Buffer } = require('buffer'); 
+const cluster = require('cluster');
 const fetch = require('axios');
 const http = require('http');
 const url = require('url');
 const fs = require('fs');
 
-const query = worker.workerData;
+/* --------------------------------------------------------------------------------------- */
+
+let query;
 const db = new Object();
+
 /* --------------------------------------------------------------------------------------- */
 
 function _init_(){
@@ -25,11 +29,22 @@ function app(req,res){
 
 /* --------------------------------------------------------------------------------------- */
 
-(()=>{ http.createServer( app ).listen( query.port,()=>{
-    _init_().then(()=>{ worker.parentPort.postMessage({
-        workerID: process.pid, port: query.port,
-        protocol: 'HTTP', status: 'started',
-    }); }).catch(e=>{ process.exit(1); });
-}); })();
+module.exports = (args)=>{ query = args;
+    return new Promise((response,reject)=>{
+        if (cluster.isPrimary) { const worker = cluster.fork();
+            cluster.on('exit', (worker, code, signal) => { cluster.fork();
+                console.log(`worker ${worker.process.pid} died`);
+            }); worker.on('message', (msg)=>{ console.log(msg); response(); }); 
+                worker.on('exit', (msg)=>{ reject(msg); });
+        } else {
+            http.createServer( app ).listen( query.port,()=>{
+                _init_().then(()=>{ process.send({
+                    workerID: process.pid, port: query.port,
+                    protocol: 'HTTP', status: 'started',
+                })}).catch(e=>{ console.log(e); });
+            });      
+        }
+    });
+}
 
 /* --------------------------------------------------------------------------------------- */
