@@ -5,7 +5,7 @@ function fillDB( _db, _table, _path ){
         let _itr = undefined;
 
         if( (/^http/).test(_path) ){ try{
-            const stream = await fetch.get(_path,{responseType:'stream'});
+            const stream = await fetch(_path,{responseType:'stream'});
             _itr = readline.createInterface({
                 input: stream.data
             })
@@ -33,7 +33,7 @@ function fillDB( _db, _table, _path ){
         const path = `${query.path}/_init_.json`;
 
         if( (/^http/).test(query.path) ){
-            const stream = await fetch.get(path);
+            const stream = await fetch(path);
             db._init_ = stream.data;
         } else{ 
             db._buff_ = fs.readFileSync( path );

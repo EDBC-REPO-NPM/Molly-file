@@ -1,5 +1,4 @@
 const worker = require('worker_threads');
-const fetch = require('axios');
 const url = require('url');
 const fs = require('fs');
 
