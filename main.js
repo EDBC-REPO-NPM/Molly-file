@@ -1,7 +1,6 @@
 const worker = require('worker_threads');
 const url = require('url');
 const fs = require('fs');
-const os = require('os');
 
 /* --------------------------------------------------------------------------------------- */
 
@@ -19,7 +18,7 @@ class molly_db{
     constructor( opt ){ if( opt.pass )
         this.pass = opt.pass; this.port = opt.port || 27017;
         this.path = opt.path.replace( /^\./,process.cwd() );
-        this.threads = opt.threads || os.cpus().length;
+        this.threads = opt.threads || 1;
         return require(`${__dirname}/module/_worker_.js`)(this);
     }
 }
