@@ -10,8 +10,8 @@ const fs = require('fs');
 
 /* --------------------------------------------------------------------------------------- */
 
-let query;
 const db = new Object();
+let query;
 
 /* --------------------------------------------------------------------------------------- */
 
@@ -31,19 +31,22 @@ function app(req,res){
 
 module.exports = (args)=>{ query = args;
     return new Promise((response,reject)=>{
-        if (cluster.isPrimary) { const worker = cluster.fork();
+
+        if ( cluster.isPrimary ) { for ( let i=query.threads; i--; ) { 
+            const worker = cluster.fork();
+            worker.on('message', (msg)=>{ console.log(msg); response(); });
             cluster.on('exit', (worker, code, signal) => { cluster.fork();
                 console.log(`worker ${worker.process.pid} died`);
-            }); worker.on('message', (msg)=>{ console.log(msg); response(); }); 
-                worker.on('exit', (msg)=>{ reject(msg); });
-        } else {
+            });  worker.on('exit', (msg)=>{ reject(msg); });
+        }} else { 
             http.createServer( app ).listen( query.port,()=>{
                 _init_().then(()=>{ process.send({
                     workerID: process.pid, port: query.port,
                     protocol: 'HTTP', status: 'started',
                 })}).catch(e=>{ console.log(e); });
-            });      
+            }); 
         }
+
     });
 }
 

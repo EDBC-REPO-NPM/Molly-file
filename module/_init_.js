@@ -6,9 +6,7 @@ function fillDB( _db, _table, _path ){
 
         if( (/^http/).test(_path) ){ try{
             const stream = await fetch(_path,{responseType:'stream'});
-            _itr = readline.createInterface({
-                input: stream.data
-            })
+            _itr = readline.createInterface({ input: stream.data });
         } catch(e) { console.log(`error reading ${_path}`); return response(); }}
 
         else if( fs.existsSync(_path) )

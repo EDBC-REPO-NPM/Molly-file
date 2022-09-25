@@ -11,7 +11,7 @@
   "dependencies": {
     "crypto-js": "^4.1.1",
     "fs": "^0.0.1-security",
-    "molly-fetch": "^1.0.12"
+    "molly-fetch": "^1.0.16"
   },
   "description": "Molly-db is a free and open source library for nodejs that allow you create a lightweight encrypted database using Json files",
   "keywords": [
