@@ -1,18 +1,12 @@
 {
   "license": "MIT",
   "main": "main.js",
-  "version": "1.0.27",
   "name": "molly-db",
+  "version": "1.0.30",
   "author": "bececrazy",
-  "scripts": {
-    "start": "node main"
-  },
+  "scripts": { "start": "node main" },
   "repository": "https://github.com/EDBC-REPO-NPM/Molly-db",
-  "dependencies": {
-    "crypto-js": "^4.1.1",
-    "fs": "^0.0.1-security",
-    "molly-fetch": "^1.0.16"
-  },
+  "dependencies": { "crypto-js": "^4.1.1", "molly-fetch": "^1.0.16" },
   "description": "Molly-db is a free and open source library for nodejs that allow you create a lightweight encrypted database using Json files",
   "keywords": [
     "json",

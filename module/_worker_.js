@@ -42,21 +42,20 @@ module.exports = (args)=>{ process.mollyDB = args;
     return new Promise((response,reject)=>{
 
         if( cluster.isPrimary ) 
-            for ( let i=args.threads; i--; ){ cluster.fork();
-                cluster.on('exit', (worker, code, signal) => { 
+            for ( let i=args.threads; i--; ){ const worker = cluster.fork();
+                worker.on('message', (msg)=>{ console.log(msg); response(); });
+                cluster.on('exit', (worker, code, signal) => { cluster.fork();
                     console.log(`worker ${worker.process.pid} died`);
-                    cluster.fork();
-                });
+                }); worker.on('exit', (msg)=>{ reject(msg); });
             }
 
         else 
             http.createServer( app ).listen( process.mollyDB.port,()=>{
-                _init_().then(()=>{ 
-                    console.log({
+                _init_().then(()=>{ process.send({
                         protocol: 'HTTP', status: 'started',
                         workerID: process.pid, port: process.mollyDB.port,
                     }); saveTimeout();
-                }).catch(e=>{ console.log(e); reject(); });
+                }).catch(e=>{ console.log(e) });
             }); 
 
     });
