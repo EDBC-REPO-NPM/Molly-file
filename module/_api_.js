@@ -9,8 +9,6 @@ function list( _params ){
 
 function match( _params ){
     try{
-
-    } catch(e) {
         const result = new Array();
         db[_params.db][_params.table].map((x)=>{
             const reg = crypto.slugify(_params.target);
@@ -21,7 +19,7 @@ function match( _params ){
         return parseData( result.map(x=>JSON.parse(x)).slice(
             _params.offset, Number(_params.offset)+Number(_params.length)
         ), result.length);
-    }
+    } catch(e) { return parseError(e) }
 }
 
 function hash( _params ){
