@@ -11,41 +11,53 @@ const fs = require('fs');
 /* --------------------------------------------------------------------------------------- */
 
 const db = new Object();
-let query;
+const api_script = fs.readFileSync(`${__dirname}/_api_.js`).toString();
+const app_script = fs.readFileSync(`${__dirname}/_app_.js`).toString();
+const init_script = fs.readFileSync(`${__dirname}/_init_.js`).toString();
+//const importDB_script = fs.readFileSync(`${__dirname}/_importDB.js`).toString();
 
 /* --------------------------------------------------------------------------------------- */
 
-function _init_(){
-    try{ return eval( fs.readFileSync(`${__dirname}/_init_.js`).toString() );
-    } catch(e){ console.log(e); }
+async function _init_(){ await eval(`try{ ${init_script} }catch(e){console.log(e)}`) }
+async function _importDB_(){ await eval(`try{ ${importDB_script} }catch(e){console.log(e)}`) }
+async function app(req,res){ await eval(`try{ ${api_script} \n ${app_script} }catch(e){console.log(e)}`) }
+
+/* --------------------------------------------------------------------------------------- */
+function saveTimeout(){
+    time = process.mollyDB.time * 3600000;
+    setTimeout(() => {
+        if( db._update_ == true ){
+            const api = url.format({
+                path: '/saveAll?db=&table=',
+                port: process.mollyDB.port,
+                host: 'http://127.0.0.1',
+            }); fetch(api).then().catch();
+            db._update_ = false;
+        }
+    }, time);
 }
-
 /* --------------------------------------------------------------------------------------- */
 
-function app(req,res){
-    try{ eval( fs.readFileSync(`${__dirname}/_server_.js`).toString() );
-    } catch(e) { console.log(e) }
-}
-
-/* --------------------------------------------------------------------------------------- */
-
-module.exports = (args)=>{ query = args;
+module.exports = (args)=>{ process.mollyDB = args;
     return new Promise((response,reject)=>{
 
-        if ( cluster.isPrimary ) { for ( let i=query.threads; i--; ) { 
-            const worker = cluster.fork();
-            worker.on('message', (msg)=>{ console.log(msg); response(); });
-            cluster.on('exit', (worker, code, signal) => { cluster.fork();
-                console.log(`worker ${worker.process.pid} died`);
-            });  worker.on('exit', (msg)=>{ reject(msg); });
-        }} else { 
-            http.createServer( app ).listen( query.port,()=>{
-                _init_().then(()=>{ process.send({
-                    workerID: process.pid, port: query.port,
-                    protocol: 'HTTP', status: 'started',
-                })}).catch(e=>{ console.log(e); });
+        if( cluster.isPrimary ) 
+            for ( let i=args.threads; i--; ){ cluster.fork();
+                cluster.on('exit', (worker, code, signal) => { 
+                    console.log(`worker ${worker.process.pid} died`);
+                    cluster.fork();
+                });
+            }
+
+        else 
+            http.createServer( app ).listen( process.mollyDB.port,()=>{
+                _init_().then(()=>{ 
+                    console.log({
+                        protocol: 'HTTP', status: 'started',
+                        workerID: process.pid, port: process.mollyDB.port,
+                    }); saveTimeout();
+                }).catch(e=>{ console.log(e); reject(); });
             }); 
-        }
 
     });
 }

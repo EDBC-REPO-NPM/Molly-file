@@ -19,6 +19,8 @@ class molly_db{
         this.pass = opt.pass; this.port = opt.port || 27017;
         this.path = opt.path.replace( /^\./,process.cwd() );
         this.threads = opt.threads || 1;
+        this.import = opt.import || '';
+        this.time = opt.saveTime || .5;
         return require(`${__dirname}/module/_worker_.js`)(this);
     }
 }

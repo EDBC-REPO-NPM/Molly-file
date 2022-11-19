@@ -17,7 +17,7 @@ function fillDB( _db, _table, _path ){
         else { console.log(`error reading ${_path}`); return response(); }     
 
         _itr.on('line',(line)=>{
-            db[_db][_table].push(crypto.decrypt( line,query.pass ));
+            db[_db][_table].push(crypto.decrypt( line,process.mollyDB.pass ));
         }); _itr.on('close',()=>{ response() });
         
     });
@@ -28,9 +28,10 @@ function fillDB( _db, _table, _path ){
 (()=>{ return new Promise(async(response,reject)=>{
     try {
 
-        const path = `${query.path}/_init_.json`;
+        const path = `${process.mollyDB.path}/_init_.json`;
+        db._update_ = true;
 
-        if( (/^http/).test(query.path) ){
+        if( (/^http/).test(process.mollyDB.path) ){
             const stream = await fetch(path);
             db._init_ = stream.data;
         } else{ 
@@ -38,7 +39,7 @@ function fillDB( _db, _table, _path ){
             db._init_ = JSON.parse( db._buff_ );
         }
 
-        db._path_ = query.path;
+        db._path_ = process.mollyDB.path;
         for( var i in db._init_.DB ){
 
             const DB = db._init_.DB[i];
@@ -58,8 +59,8 @@ function fillDB( _db, _table, _path ){
     } catch(e) {
 
         db._init_ = { DB:[] };
-        db._path_ = query.path;
-        const path = `${query.path}/_init_.json`;
+        db._path_ = process.mollyDB.path;
+        const path = `${process.mollyDB.path}/_init_.json`;
         fs.writeFileSync( path,JSON.stringify(db._init_) );
 
     }   response();
