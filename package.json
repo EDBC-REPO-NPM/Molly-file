@@ -2,7 +2,7 @@
   "license": "MIT",
   "main": "main.js",
   "name": "molly-db",
-  "version": "1.0.33",
+  "version": "1.0.34",
   "author": "bececrazy",
   "scripts": { "start": "node main" },
   "repository": "https://github.com/EDBC-REPO-NPM/Molly-db",
