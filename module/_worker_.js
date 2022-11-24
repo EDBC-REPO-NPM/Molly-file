@@ -26,13 +26,12 @@ async function app(req,res){ await eval(`try{ ${api_script} \n ${app_script} }ca
 function saveTimeout(){
     time = process.mollyDB.time * 3600000;
     setTimeout(() => {
-        if( db._update_ == true ){
+        if( db._update_ ){db._update_ = false;
+            const port = process.mollyDB.port;
             const api = url.format({
-                path: '/saveAll?db=&table=',
-                port: process.mollyDB.port,
-                host: 'http://127.0.0.1',
+                host: 'http://127.0.0.1:${port}',
+                path: '/saveAll'
             }); fetch(api).then().catch();
-            db._update_ = false;
         }
     }, time);
 }

@@ -97,11 +97,11 @@ async function addTable( _params ){
             }
         }
         
-        /*await save( _params )*/ return [{
+        /*await save( _params )*/ return {
             status: 'table added',
             database: _params.db,
             table: _params.table,
-        }];
+        };
 
     } catch(e) { return parseError(e) }
 }
@@ -123,11 +123,11 @@ async function removeTable( _params ){
             }
         }
     
-        /*await save( _params )*/ return [{
+        /*await save( _params )*/ return {
             status: 'table removed',
             database: _params.db,
             table: _params.table,
-        }];
+        };
 
     } catch(e) { return parseError(e) }
 }
@@ -147,10 +147,10 @@ async function addDB( _params ){
             tables: [], name: _params.db,
         }); db[_params.db] = new Array();
     
-        /*await save( _params )*/ return [{
+        /*await save( _params )*/ return {
             database: _params.db,
             status: 'DB added'
-        }];
+        };
 
     } catch(e) { return parseError(e) }
 }
@@ -175,11 +175,11 @@ async function removeDB( _params ){
             }
         }
     
-        /*await save( _params )*/ return [{
+        /*await save( _params )*/ return {
             database: _params.db,
             table: _params.table,
             status: 'DB deleted'
-        }];
+        };
 
     } catch(e) { return parseError(e) }
 }
@@ -202,11 +202,11 @@ async function modifyDB( _name, _table ){
 
 /* --------------------------------------------------------------------------------------- */
 
-async function saveAll( _params ){
+async function saveAll(){
     try{for( var i in db['_init_'] ){ for( var j in db['_init_'][i] ){
         const {name,tables} = db['_init_'][i][j];
         for( var k in tables ) 
             await modifyDB(name,tables[k])
-    }}  return parseData([]);
-    } catch(e) { return parseError(e) }
+    }}  return { status: 'DB Saved' };
+    } catch(e) { console.log(e); return parseError(e) }
 }

@@ -145,42 +145,41 @@ async function save( _params ){
 (async ()=>{
     try{
         
-        body = await getBody();
-        params = await validate(params); 
+        if( api.pathname == '/saveAll' ) 
+            return json( await saveAll() );
+            params = await validate(params);
+            body = await getBody();
 
         /* Find Api */
-        if( api.pathname == '/list' ) json( await list(params) )
-        else if( api.pathname == '/hash' ) json( await hash(params) )
-        else if( api.pathname == '/match' ) json( await match(params) )
-        else if( api.pathname == '/update' ) json( await update(params) )
+        switch( api.pathname ){
 
-        else if( api.pathname == '/index' ) json( await indexOf(params) )
-        else if( api.pathname == '/length' ) json( await lengthOf(params) )
+            case '/pop':        return json( await pop(params) );
+            case '/shift':      return json( await shift(params) );
 
-        /* Save Api */
-        else if( api.pathname == '/save' ) json( await save(params) )
-        else if( api.pathname == '/remove' ) json( await remove(params) )
-        else if( api.pathname == '/refresh' ) json( await refresh(params) )
-        else if( api.pathname == '/saveAll' ) json( await saveAll(params) )
+            case '/list':       return json( await list(params) );
+            case '/hash':       return json( await hash(params) );
+            case '/match':      return json( await match(params) );
+            case '/update':     return json( await update(params) );
 
-        /* Remove Api */
-        else if( api.pathname == '/pop' ) json( await pop(params) )
-        else if( api.pathname == '/shift' ) json( await shift(params) )
+            case '/push':       return json( await push(params) );
+            case '/slice':      return json( await splice(params) );
+            case 'unshift':     return json( await unshift(params) );
 
-        /* Modify Api */
-        else if( api.pathname == '/push' ) json( await push(params) )
-        else if( api.pathname == '/splice' ) json( await splice(params) )
-        else if( api.pathname == '/unshift' ) json( await unshift(params) )
+            case '/save':       return json( await save(params) );
+            case '/remove':     return json( await remove(params) );
+            case '/refresh':    return json( await refresh(params) );
 
-        /* Modify Table Api */
-        else if( api.pathname == '/addDB' ) json( await addDB(params) )
-        else if( api.pathname == '/removeDB' ) json( await removeDB(params) )
+            case '/index':      return json( await indexOf(params) );
+            case '/length':     return json( await lengthOf(params) );
 
-        /* Modify Table Api */
-        else if( api.pathname == '/addTable' ) json( await addTable(params) )
-        else if( api.pathname == '/removeTable' ) json( await removeTable(params) )
+            case '/addDB':      return json( await addDB(params) );
+            case '/removeDB':   return json( await removeDB(params) );
+            case '/addTable':   return json( await addTable(params) );
+            case '/removeTable':return json( await removeTable(params) );
 
-        else error(parseError('Oops something went wrong'));
+            default:            return error(parseError('Oops something went wrong'));
+
+        }
 
     } catch(e) { error(parseError(e)); }
 })();
