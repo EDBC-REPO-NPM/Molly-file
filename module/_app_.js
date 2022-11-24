@@ -145,10 +145,10 @@ async function save( _params ){
 (async ()=>{
     try{
         
+        body = await getBody();
         if( api.pathname == '/saveAll' ) 
             return json( await saveAll() );
             params = await validate(params);
-            body = await getBody();
 
         /* Find Api */
         switch( api.pathname ){
