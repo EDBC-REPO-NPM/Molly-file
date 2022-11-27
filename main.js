@@ -20,7 +20,7 @@ class molly_db{
         this.path = opt.path.replace( /^\./,process.cwd() );
         this.threads = opt.threads || 1;
         this.import = opt.import || '';
-        this.time = opt.saveTime || .5;
+        this.time = opt.saveTime || .1;
         return require(`${__dirname}/module/_worker_.js`)(this);
     }
 }

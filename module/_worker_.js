@@ -14,12 +14,10 @@ const db = new Object();
 const api_script = fs.readFileSync(`${__dirname}/_api_.js`).toString();
 const app_script = fs.readFileSync(`${__dirname}/_app_.js`).toString();
 const init_script = fs.readFileSync(`${__dirname}/_init_.js`).toString();
-//const importDB_script = fs.readFileSync(`${__dirname}/_importDB.js`).toString();
 
 /* --------------------------------------------------------------------------------------- */
 
 async function _init_(){ await eval(`try{ ${init_script} }catch(e){console.log(e)}`) }
-async function _importDB_(){ await eval(`try{ ${importDB_script} }catch(e){console.log(e)}`) }
 async function app(req,res){ await eval(`try{ ${api_script} \n ${app_script} }catch(e){console.log(e)}`) }
 
 /* --------------------------------------------------------------------------------------- */
@@ -28,10 +26,8 @@ function saveTimeout(){
     setTimeout(() => {
         if( db._update_ ){db._update_ = false;
             const port = process.mollyDB.port;
-            const api = url.format({
-                host: 'http://127.0.0.1:${port}',
-                path: '/saveAll'
-            }); fetch(api).then().catch();
+            const api = `http://127.0.0.1:${port}/saveAll`; 
+            fetch(api).then(()=>{}).catch(()=>{});
         }
     }, time);
 }
