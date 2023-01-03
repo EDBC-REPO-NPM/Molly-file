@@ -23,16 +23,16 @@ output.validator = function( db, params ){
         validator = [
             [!params?.db, {status:404,message:'error: no db name added'}],
             [!params?.table, {status:404,message:'error: no table name added'}]
-        ].some(x=>{ if(x[0]) reject(x[1]); return x[0];}); if(validator) return 0;
+        ].some(x=>{ if(x[0]) response(0); /*reject(x[1])*/ return x[0];}); if(validator) return 0;
 
         if( !(/table|db|all/gi).test(params.type) ){
             validator = [
                 [!vdb(params?.db), {status:404,message:`erorr: no db called ${params.db} exist`}],
                 [!vtb(params?.table), {status:404,message:`error: no table called ${params.table} exist`}]
-            ].some(x=>{ if(x[0]) reject(x[1]); return x[0];}); if(validator) return 0;
+            ].some(x=>{ if(x[0]) response(0); /*reject(x[1])*/ return x[0];}); if(validator) return 0;
         }
 
-        response();
+        response(1); //response();
     });
 }
 

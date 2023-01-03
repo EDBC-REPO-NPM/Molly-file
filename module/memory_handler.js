@@ -5,13 +5,29 @@ const output = new Object();
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
-module.exports = function( data,db ){ 
-    return new Promise((response,reject)=>{
-        utils.validator( db,data ).then(()=>{
-            try { response(Array.isArray(data) ? data.map(x=>utils[x.type](x,db)) : 
-                                                 utils[data.type](data,db))
-            } catch(e) { response(JSON.stringify({ status:404, message:`error: ${e.message}` })) }
-        }).catch(e=>{ reject(JSON.stringify(e)) });
+function copy( A,B ){
+    const result = new Object();
+    Object.keys(A).map(x=>result[x] = A[x]);
+    Object.keys(B).map(x=>result[x] = B[x]);
+    return result;
+}
+
+/*--────────────────────────────────────────────────────────────────────────────────────────────--*/
+
+module.exports = function( data,inst,db ){ 
+    return new Promise(async(response,reject)=>{
+        const input = Array.isArray(inst) ? inst : [inst];
+        const result = new Array();
+
+        for( var i in input ){ 
+            const cfg = copy(data,input[i]); try {
+                const bool = await utils.validator(db,cfg);
+                if( bool ) result.push(utils[cfg.type](cfg,db));
+                else return reject({ status:404, message:`error` })
+            } catch(e) {
+                return reject({ status:404, message:`error: ${e.message}` })
+            }
+        }   return response( result );
     })
 };
 

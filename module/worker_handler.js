@@ -25,15 +25,6 @@ function saveTimeout(data,db){
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
-function copy( A,B ){
-    const result = new Object();
-    Object.keys(A).map(x=>result[x] = A[x]);
-    Object.keys(B).map(x=>result[x] = B[x]);
-    return result;
-}
-
-/*--────────────────────────────────────────────────────────────────────────────────────────────--*/
-
 module.exports = (args)=>{
     init( args ).then((db)=>{ saveTimeout( args, db );
         const dir = path.join(__dirname,'server_worker.js');
@@ -43,8 +34,7 @@ module.exports = (args)=>{
             const error = '{ "status":"404", "message":"error data" }';
             try {
                 const raw = Buffer.from(msg).toString(); 
-                const data = copy( args,JSON.parse(raw) ); 
-                memory(data,db).then(x=>{ 
+                memory(args,JSON.parse(raw),db).then(x=>{ 
                     const out = JSON.stringify(x); srv.postMessage(out||empty);
                 }).catch(e=>{
                     const out = JSON.stringify(e); srv.postMessage(out||empty);
