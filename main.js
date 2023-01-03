@@ -1,8 +1,10 @@
-const worker = require('worker_threads');
-const url = require('url');
+/*--────────────────────────────────────────────────────────────────────────────────────────────--*/
+
+const path = require('path');
+const url = require('url'); 
 const fs = require('fs');
 
-/* --------------------------------------------------------------------------------------- */
+/*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
 function config( _config ) {
     const _default = { offset:0, length:100 };
@@ -12,19 +14,26 @@ function config( _config ) {
     });
 }
 
-/* --------------------------------------------------------------------------------------- */
+/*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
 class molly_db{
-    constructor( opt ){ if( opt.pass )
-        this.pass = opt.pass; this.port = opt.port || 27017;
-        this.path = opt.path.replace( /^\./,process.cwd() );
-        this.threads = opt.threads || 1;
-        this.import = opt.import || '';
+    constructor( opt ){
+        if(opt.pass) this.pass = opt.pass; this.port = opt.port || 27017;
+        const dir = path.join(__dirname,'/module/worker_handler.js');
+
+        if( !(new RegExp(process.cwd())).test(opt.path) )
+             this.path = path.join(process.cwd(),opt.path);
+        else this.path = opt.path;
+
+        this.protocol = opt.protocol || 'http';
         this.time = opt.saveTime || .1;
-        return require(`${__dirname}/module/_worker_.js`)(this);
+        this.import = opt.import || '';
+        this.threads = opt.thread|| 1;
+        
+        return require(dir)(this);
     }
 }
 
-/* --------------------------------------------------------------------------------------- */
+/*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
 module.exports = molly_db;
