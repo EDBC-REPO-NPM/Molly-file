@@ -9,7 +9,7 @@
   "license": "MIT",
   "main": "main.js",
   "name": "molly-db",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "author": "bececrazy",
   "description": "Molly-db is a free and open source library for nodejs that allow you create a lightweight encrypted database using Json files",
   "keywords": [
