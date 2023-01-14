@@ -11,28 +11,27 @@ output.validator = function( db, params ){
     return new Promise((response,reject)=>{
 
         let validator = false; output.bodyParser( params );
-        const vdb = (key)=>{ return db._init_.DB.some(x=>{ return x.name == key; }) }
-        const vtb = (key)=>{ return db._init_.DB.some(x=>{ return x.tables.join().match(key); }) }
+        const vdb = ()=>db._init_.DB.some(x=>x.name==params.db);
+        const vtb = ()=>db._init_.DB.some(x=>x.tables?.join().match(params.table));
 
         validator = [
+            [ !params?.db, 'params.db = "test"' ],
             [ !params?.offset, 'params.offset = 0' ],
             [ !params?.target, 'params.target = ""' ],
             [ !params?.length, 'params.length = 100' ],
+            [ !params?.table, 'params.table = "test"' ],
         ].every(x=>{ if(x[0]) eval(x[1]); return true; });
 
         validator = [
             [!params?.db, {status:404,message:'error: no db name added'}],
-            [!params?.table, {status:404,message:'error: no table name added'}]
-        ].some(x=>{ if(x[0]) response(0); /*reject(x[1])*/ return x[0];}); if(validator) return 0;
+            [!params?.table, {status:404,message:'error: no table name added'}],
+        ].some(x=>{ if(x[0]) response([0,x[1]]); return x[0];}); if(validator) return 0;
 
-        if( !(/table|db|all/gi).test(params.type) ){
-            validator = [
-                [!vdb(params?.db), {status:404,message:`erorr: no db called ${params.db} exist`}],
-                [!vtb(params?.table), {status:404,message:`error: no table called ${params.table} exist`}]
-            ].some(x=>{ if(x[0]) response(0); /*reject(x[1])*/ return x[0];}); if(validator) return 0;
-        }
+        validator = [
+            [!vdb(), output.addDB(params,db)], 
+            [!vtb(), output.addTable(params,db)], 
+        ].some(x=>x[0]); response([1,'']);
 
-        response(1); //response();
     });
 }
 
@@ -69,9 +68,9 @@ const modifyDB = async function( data, db, _name, _table ){
         try{const length = db[_name][_table].length;
             if( !(length>0) ) fs.writeFileSync(dir,'');
             else await encryptDB( data, db, _name, _table, dir );
-        } catch(e) { console.log(e); fs.unlinkSync( dir ); }
+        } catch(e) { fs.unlinkSync( dir ); }
 
-    } catch(e) { console.log(e); return parseError(db,data,e) }
+    } catch(e) { return parseError(db,data,e) }
 }
 
 const parseData = function( db,params,_data, _length ){
@@ -130,6 +129,18 @@ output.unshift = function( data,db ){ db._update_ = true;
     return parseData( db,data,result );
 }
 
+/*-- ── --*/
+
+output.tableList = function( data,db ){
+    const result = Object.keys(db[data.db]);
+    return parseData( db,data,result );
+}
+/*
+output.dbList = function( data,db ){
+    const result = Object.keys(db);
+    return parseData( db,data,result );
+}
+*/
 /*-- ── --*/
 
 output.list = function(data,db){
@@ -227,11 +238,14 @@ output.removeDB = function(data,db){
         };
 
         for( var i in db._init_.DB ){
-            if( db._init_.DB.name == data.db ){
+            if( db._init_.DB[i].name == data.db ){
                 db._init_.DB[i].tables.map(x=>{
-                    fs.unlinkSync(path.join(data.path,`${x}.json`));
-                }); db._init_.DB.splice(i,1);
-                delete db[data.db];
+                    const dir = path.join(data.path,`${x}.json`);
+                    if( fs.existsSync(dir) ) fs.unlinkSync(dir);
+                }); 
+                const arr = db._init_.DB; arr.splice(i,1);
+                      db._init_.DB = arr||new Array(); 
+                      delete db[data.db];
                 break;
             }
         }
@@ -286,12 +300,15 @@ output.removeTable = function(data,db){
     
         for( var i in db._init_.DB ){
             if( db._init_.DB[i].name == data.db ){
-                const j = db._init_.DB[i].tables.indexOf(x=>x==data.table);
-                delete db[data.db][data.table]; db._init_.DB[i].tables.splice(j,1);
-                break;
+                const dir = path.join(data.path,`${data.table}.json`);
+                const j = db._init_.DB[i].tables.indexOf(data.table);
+                if( fs.existsSync(dir) ) fs.unlinkSync(dir);
+                const arr = db._init_.DB[i].tables; arr.splice(j,1);
+                      db._init_.DB[i].tables = arr||new Array(); 
+                delete db[data.db][data.table];
             }
         }
-    
+
         return {
             status: 200,
             database: data.db,
@@ -306,14 +323,14 @@ output.removeTable = function(data,db){
 
 output.saveAll = async function(data,db){
     try { for( var i in db['_init_'] ){ for( var j in db['_init_'][i] ){
-        const {name,tables} = db['_init_'][i][j];
+        const { name, tables } = db['_init_'][i][j];
         for( var k in tables ) await modifyDB(data,db,name,tables[k])
     }} return { 
         status: 200,
         database: data.db,
         table: data.table,
         message: 'DB Saved' 
-    }} catch(e) { console.log(e); return parseError(db,data,e) }
+    }} catch(e) { return parseError(db,data,e) }
 }
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
