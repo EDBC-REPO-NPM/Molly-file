@@ -1,6 +1,7 @@
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
 const crypto = require('./crypto_handler');
+const init = require('./init_handler');
 const path = require('path');
 const output = new Object();
 const fs = require('fs');
@@ -331,6 +332,24 @@ output.saveAll = async function(data,db){
         table: data.table,
         message: 'DB Saved' 
     }} catch(e) { return parseError(db,data,e) }
+}
+
+/*--────────────────────────────────────────────────────────────────────────────────────────────--*/
+
+output.reset = async function(data,db){
+    const args = JSON.parse(process.env.MOLLY_DB_ARGS);
+    return new Promise((response,reject)=>{
+        init( args ).then((ndb)=>{ db = ndb; 
+            
+            return response({ 
+                status: 200,
+                database: data.db,
+                table: data.table,
+                message: 'DB Reseted' 
+            });
+    
+        }).catch((e)=>{ response(parseError(db,data,e)) });
+    })
 }
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/

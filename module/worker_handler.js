@@ -26,6 +26,7 @@ function saveTimeout(data,db){
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
 module.exports = (args)=>{
+    process.env.MOLLY_DB_ARGS = JSON.stringify(args);
     init( args ).then((db)=>{ saveTimeout( args, db );
         const dir = path.join(__dirname,'server_worker.js');
         const srv = new worker.Worker(dir,{ workerData: args });

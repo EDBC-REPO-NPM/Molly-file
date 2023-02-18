@@ -23,7 +23,7 @@ module.exports = function( data,inst,db ){
             const cfg = copy(data,input[i]); try {
                 const bool = await utils.validator(db,cfg);
                 if( !bool[0] ) return reject(bool[1]);
-                else result.push(utils[cfg.type](cfg,db));
+                else result.push(await utils[cfg.type](cfg,db));
             } catch(e) {
                 return reject({ status:404, message:`error: ${e.message}` })
             }

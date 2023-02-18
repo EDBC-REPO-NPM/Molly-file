@@ -1,4 +1,5 @@
-const crypto = require('./crypto_handler')
+const download = require('./import_handler');
+const crypto = require('./crypto_handler');
 const fetch = require('molly-fetch');
 const readline = require('readline');
 const path = require('path');
