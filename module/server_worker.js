@@ -8,31 +8,34 @@ const ws = require('ws');
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
 function createHTTPServer(){
-    http.createServer( app.http ).listen( process.env.port,()=>{
+    http.createServer( app.http ).listen( process.env.port, process.env.host, ()=>{
         console.log({
             protocol: 'HTTP', status: 'started',
             wrkID: process.pid, port: process.env.port,
+            host: process.env.host
         });
     });
 }
 
 function createWebSocketServer(){
-    const srv = new ws.WebSocketServer({ port: process.env.port });
+    const srv = new ws.WebSocketServer({ port: process.env.port, host: process.env.host });
     srv.on('connection',(client)=>{
         client.on('message',(msg)=>app.WebSocket(msg,client));
     }); console.log ({
         protocol: 'WebSocket', status: 'started',
         wrkID: process.pid, port: process.env.port,
+        host: process.env.host
     });
 }
 
 function createSocketServer(){
-    const srv = net.createServer({ port: process.env.port });
+    const srv = net.createServer({ port: process.env.port, host: process.env.host });
     srv.on('connection',(client)=>{
         client.on('message',(msg)=>app.Socket(msg,client));
     }); console.log ({
         protocol: 'Socket', status: 'started',
         wrkID: process.pid, port: process.env.port,
+        host: process.env.host
     });
 }
 

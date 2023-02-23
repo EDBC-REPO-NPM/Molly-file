@@ -25,10 +25,11 @@ class molly_db{
              this.path = path.join(process.cwd(),opt.path);
         else this.path = opt.path;
 
+        this.host = opt.host         || 'localhost';
         this.protocol = opt.protocol || 'http';
-        this.time = opt.saveTime || .1;
-        this.import = opt.import || '';
-        this.threads = opt.thread|| 1;
+        this.time = opt.saveTime     || .1;
+        this.import = opt.import     || '';
+        this.threads = opt.thread    || 1;
         
         return require(dir)(this);
     }
