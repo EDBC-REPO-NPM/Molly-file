@@ -21,12 +21,7 @@ class molly_db{
         if(opt.pass) this.pass = opt.pass; this.port = opt.port || 27016;
         const dir = path.join(__dirname,'/module/worker_handler.js');
 
-        if( !(new RegExp(process.cwd())).test(opt.path) )
-             this.path = path.join(process.cwd(),opt.path);
-        else this.path = opt.path;
-
         this.host = opt.host         || 'localhost';
-        this.import = opt.import     || '';
         this.cache = opt.cacheTime   || 1;
         this.threads = opt.thread    || 1;
         
