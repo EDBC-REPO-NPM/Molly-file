@@ -24,13 +24,11 @@ const ws = require('ws');
             worker.parentPort.on('message',(msg)=>{ wrk.send(msg) });
        
         }
-    } else {
-        http.createServer( app.http ).listen( process.env.port, process.env.host, ()=>{
-            console.log({
-                protocol: 'HTTP', status: 'started',
-                wrkID: process.pid, port: process.env.port,
-                host: process.env.host
-            });
+    } else { const port = Number( process.env.port );
+        http.createServer( app.http ).listen( port, process.env.host, ()=>{
+            console.log(JSON.stringify({
+                name: 'molly-file', protocol: 'HTTP', port: port, host: process.env.host
+            }));
         });
     } 
     
