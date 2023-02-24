@@ -1,27 +1,27 @@
 {
+  "repository": "https://github.com/EDBC-REPO-NPM/molly-file",
+  "description": "molly-file is a free and opensource",
   "scripts": { "start": "node main" },
-  "repository": "https://github.com/EDBC-REPO-NPM/Molly-db",
-  "dependencies": {
-    "molly-fetch": "^1.0.16",
+  "dependencies": { 
+    "molly-fetch": "^1.1.2",
     "crypto-js": "^4.1.1",
     "ws": "^8.11.0"
   },
-  "license": "MIT",
+  "author": "becerraEnamneul",
+  "name": "molly-file",
+  "version": "1.0.1",
   "main": "main.js",
-  "name": "molly-db",
-  "version": "1.3.4",
-  "author": "bececrazy",
-  "description": "Molly-db is a free and open source library for nodejs that allow you create a lightweight encrypted database using Json files",
+  "license": "MIT",
   "keywords": [
-    "json",
-    "storage",
-    "database",
-    "datastorage",
-    "web-database",
-    "json-database",
-    "encrypted-data",
-    "web-local-storage",
+    "web-encrypted-database",
     "encrypted-database",
-    "web-encrypted-database"
+    "web-local-storage",
+    "encrypted-data",
+    "json-database",
+    "web-database",
+    "datastorage",
+    "database",
+    "storage",
+    "json"
   ]
 }

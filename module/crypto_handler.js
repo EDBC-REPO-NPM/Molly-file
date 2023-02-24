@@ -4,6 +4,73 @@ const output = new Object();
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
+const mime = {
+	
+	"txt" : "text/plain",
+	"text": "text/plain",
+	
+	"otf" : "font/otf",
+	"ttf" : "font/ttf",
+	"woff": "font/woff",
+	"woff2":"font/woff2",
+	
+	"oga" : "audio/ogg",
+	"aac" : "audio/aac",
+	"wav" : "audio/wav",
+	"mp3" : "audio/mpeg",
+	"opus": "audio/opus",
+	"weba": "audio/webm",
+	
+	"ogv" : "video/ogg",
+	"mp4" : "video/mp4",
+	"ts"  : "video/mp2t",
+	"webm": "video/webm",
+	"mpeg": "video/mpeg",
+	"avi" : "video/x-msvideo",
+	
+	"css" : "text/css",
+	"csv" : "text/csv",
+	"html": "text/html",
+	"scss": "text/scss",
+	"ics" : "text/calendar",
+	"js"  : "text/javascript",
+	"xml" : "application/xhtml+xml",
+
+	"bmp" : "image/bmp",
+	"gif" : "image/gif",
+	"png" : "image/png",
+	"jpg" : "image/jpeg",
+	"jpeg": "image/jpeg",
+	"webp": "image/webp",
+	"svg" : "image/svg+xml",
+	"ico" : "image/vnd.microsoft.icon",
+	
+	"zip" : "application/zip",
+	"gz"  : "application/gzip",
+	"sh"  : "application/x-sh",
+	"json": "application/json",
+	"tar" : "application/x-tar",
+	"rar" : "application/vnd.rar",
+	"7z"  : "application/x-7z-compressed",
+	"m3u8": "application/vnd.apple.mpegurl",
+	
+	"pdf" : "application/pdf",
+	"doc" : "application/msword",
+	"vsd" : "application/vnd.visio",
+	"xls" : "application/vnd.ms-excel",
+	"ppt" : "application/vnd.ms-powerpoint",
+	"swf" : "application/x-shockwave-flash",
+	"ods" : "application/vnd.oasis.opendocument.spreadsheet",
+	"odp" : "application/vnd.oasis.opendocument.presentation",
+	"odt" : "application/vnd.oasis.opendocument.presentation",
+	"xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+	"docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+	"pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+    
+};
+
+/*--────────────────────────────────────────────────────────────────────────────────────────────--*/
+
 const JsonFormatter = {
 
 	'stringify': function(cipherParams) {
@@ -56,6 +123,13 @@ output.decrypt = ( _message,_password )=>{
         return crypto.AES.decrypt( _message,_password,{ format: JsonFormatter })
 						 .toString( crypto.enc.Utf8 ); return _message;
     } catch(e) { return _message; }
+}
+
+output.mimeType = function( _path ){
+	if( !(/\.\w+$/).test(_path) ) return 'text/html';
+	for(var key of Object.keys(mime)){ 
+		if( _path.endsWith(key) ) return mime[key];
+	}	return 'text/plain';
 }
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/

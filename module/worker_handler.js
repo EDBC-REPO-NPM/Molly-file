@@ -14,20 +14,16 @@ function Exit(code){ console.log(`worker exit code: ${code}`); }
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
-function saveTimeout(data,db){
+function cacheTimeout(data,db){
     setTimeout(() => {
-        if( db._update_ ){
-            db._update_ = false;
-            utils.saveAll(data,db);
-        }
-    }, data.time * 3600 * 1000 );
+        utils.checkAll(data,db);
+    }, data.cache * 86400 * 1000 );
 }
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
 module.exports = (args)=>{
-    process.env.MOLLY_DB_ARGS = JSON.stringify(args);
-    init( args ).then((db)=>{ saveTimeout( args, db );
+    init( args ).then((db)=>{ cacheTimeout( args, db );
         const dir = path.join(__dirname,'server_worker.js');
         const srv = new worker.Worker(dir,{ workerData: args });
         srv.on('error',Error); srv.on('exit',Exit); srv.on('message',(msg)=>{
@@ -35,11 +31,9 @@ module.exports = (args)=>{
             const error = '{ "status":"404", "message":"error data" }';
             try {
                 const raw = Buffer.from(msg).toString(); 
-                memory(args,JSON.parse(raw),db).then(x=>{ 
-                    const out = JSON.stringify(x); srv.postMessage(out||empty);
-                }).catch(e=>{
-                    const out = JSON.stringify(e); srv.postMessage(out||empty);
-                })
+                memory(args,JSON.parse(raw),db)
+                .then(x=>{ const out = JSON.stringify(x); srv.postMessage(out||empty) })
+                .catch(e=>{const out = JSON.stringify(e); srv.postMessage(out||empty) })
             } catch(e) { console.log(e); srv.postMessage(error) }
         });
     }).catch((e)=>{ console.log(e) });

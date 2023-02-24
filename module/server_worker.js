@@ -7,40 +7,6 @@ const ws = require('ws');
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
-function createHTTPServer(){
-    http.createServer( app.http ).listen( process.env.port, process.env.host, ()=>{
-        console.log({
-            protocol: 'HTTP', status: 'started',
-            wrkID: process.pid, port: process.env.port,
-            host: process.env.host
-        });
-    });
-}
-
-function createWebSocketServer(){
-    const srv = new ws.WebSocketServer({ port: process.env.port, host: process.env.host });
-    srv.on('connection',(client)=>{
-        client.on('message',(msg)=>app.WebSocket(msg,client));
-    }); console.log ({
-        protocol: 'WebSocket', status: 'started',
-        wrkID: process.pid, port: process.env.port,
-        host: process.env.host
-    });
-}
-
-function createSocketServer(){
-    const srv = net.createServer({ port: process.env.port, host: process.env.host });
-    srv.on('connection',(client)=>{
-        client.on('message',(msg)=>app.Socket(msg,client));
-    }); console.log ({
-        protocol: 'Socket', status: 'started',
-        wrkID: process.pid, port: process.env.port,
-        host: process.env.host
-    });
-}
-
-/*--────────────────────────────────────────────────────────────────────────────────────────────--*/
-
 (()=>{
 
     if( cluster.isPrimary ) { 
@@ -56,14 +22,16 @@ function createSocketServer(){
 
             wrk.on('message', (msg)=>{ worker.parentPort.postMessage(msg) });
             worker.parentPort.on('message',(msg)=>{ wrk.send(msg) });
-            
+       
         }
     } else {
-        switch( process.env.protocol ){
-            case 'WebSocket': createWebSocketServer(); break;
-            case 'Socket': createSocketServer(); break;
-            default: createHTTPServer(); break;
-        }
+        http.createServer( app.http ).listen( process.env.port, process.env.host, ()=>{
+            console.log({
+                protocol: 'HTTP', status: 'started',
+                wrkID: process.pid, port: process.env.port,
+                host: process.env.host
+            });
+        });
     } 
     
 })();

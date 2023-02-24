@@ -18,7 +18,7 @@ function config( _config ) {
 
 class molly_db{
     constructor( opt ){
-        if(opt.pass) this.pass = opt.pass; this.port = opt.port || 27017;
+        if(opt.pass) this.pass = opt.pass; this.port = opt.port || 27016;
         const dir = path.join(__dirname,'/module/worker_handler.js');
 
         if( !(new RegExp(process.cwd())).test(opt.path) )
@@ -26,9 +26,8 @@ class molly_db{
         else this.path = opt.path;
 
         this.host = opt.host         || 'localhost';
-        this.protocol = opt.protocol || 'http';
-        this.time = opt.saveTime     || .1;
         this.import = opt.import     || '';
+        this.cache = opt.cacheTime   || 1;
         this.threads = opt.thread    || 1;
         
         return require(dir)(this);

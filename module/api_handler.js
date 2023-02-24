@@ -1,45 +1,59 @@
-const cluster = require('cluster');
+/*--────────────────────────────────────────────────────────────────────────────────────────────--*/
+
+const file = require('./file_handler');
+const fetch = require('molly-fetch');
+const crypto = require('crypto-js');
 const {Buffer} = require('buffer');
+const stream = require('stream');
+const path = require('path');
 const output = new Object();
+const url = require('url');
+const fs = require('fs');
+const os = require('os');
+
+/*--────────────────────────────────────────────────────────────────────────────────────────────--*/
+
+function getStream( options ){
+    return new Promise((response,reject)=>{
+        const { range, mime } = options.headers;
+        file( options ).then(res=>response(res))
+                       .catch(rej=>reject(rej))
+    });
+}
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
 output.http = function(req,res){
+    try { const options = new Object();
 
-    if( req.method != 'POST' ){
-        res.writeHead(200,{'content-type': 'text/plain'});
-        return res.end('Only Post Method Avalilable');
-    }   const raw = new Array();
+        /* options */
+        options.decode       = false;
+        options.responseType = 'stream';
+        options.url          = req.url.slice(1);
+        options.range        = req.headers.range  || null;
+        options.method       = req.method         || 'GET';
+        options.headers      = req.headers        || new Object();
+        options.hash         = req.headers.hash   || crypto.SHA256(options.url).toString(); 
+        options.path         = path.join( os.tmpdir(), options.hash );
+        /* options */
 
-    req.on('close',()=>{ process.send(Buffer.concat(raw)) });
-    req.on('data',(chunk)=>{ raw.push(chunk) });
-
-    cluster.worker.once('message',(msg)=>{
-        const status = msg.match(/\d+/i)[0];
-        res.writeHead(status,{'content-type': 'text/plain'});
-        res.write(msg); res.end();
-    })
-
-}
-
-/*--────────────────────────────────────────────────────────────────────────────────────────────--*/
-
-output.WebSocket = function( message,client ){
-    cluster.worker.once('message',(msg)=>{
-        client.send(msg);
-    }); process.send(message);
-}
-
-/*--────────────────────────────────────────────────────────────────────────────────────────────--*/
-
-output.Socket = function( message,client ){
-    cluster.worker.once('message',(msg)=>{
-        client.write(msg);
-    }); process.send(message);
+        getStream( options ).then((response)=>{
+            res.writeHead( response.status, response.headers );
+            const out = response.stream || response.data;
+            out.pipe(res);
+        }).catch(e=>{ 
+            res.writeHead(404,{'Content-Type': 'text/html'});
+            return res.end(`error: ${e}`);
+        });
+          
+    } catch(e) {
+        res.writeHead(404,{'Content-Type': 'text/html'});
+        if( e.message ) 
+             return res.end(`error: not a valid URL`);
+        else return res.end(`error: ${e}`);
+    }
 }
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
 module.exports = output;
-
-/*--────────────────────────────────────────────────────────────────────────────────────────────--*/

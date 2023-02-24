@@ -16,11 +16,11 @@ output.validator = function( db, params ){
         const vtb = ()=>db._init_.DB.some(x=>x.tables?.join().match(params.table));
 
         validator = [
-            [ !params?.db, 'params.db = "test"' ],
             [ !params?.offset, 'params.offset = 0' ],
+            [ !params?.db,     'params.db = "test"' ],
             [ !params?.target, 'params.target = ""' ],
             [ !params?.length, 'params.length = 100' ],
-            [ !params?.table, 'params.table = "test"' ],
+            [ !params?.table,  'params.table = "test"' ],
         ].every(x=>{ if(x[0]) eval(x[1]); return true; });
 
         validator = [
@@ -56,22 +56,6 @@ const encryptDB = function( param, db, _db, _table, _path ){
         });
 
     });
-}
-
-const modifyDB = async function( data, db, _name, _table ){
-    try{
-
-        const dir = path.join(db._path_,`${_table}.json`);
-        const init = path.join(db._path_,'_init_.json');
-
-        fs.writeFileSync( init,JSON.stringify(db._init_) );
-    
-        try{const length = db[_name][_table].length;
-            if( !(length>0) ) fs.writeFileSync(dir,'');
-            else await encryptDB( data, db, _name, _table, dir );
-        } catch(e) { fs.unlinkSync( dir ); }
-
-    } catch(e) { return parseError(db,data,e) }
 }
 
 const parseData = function( db,params,_data, _length ){
@@ -322,34 +306,20 @@ output.removeTable = function(data,db){
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
-output.saveAll = async function(data,db){
-    try { for( var i in db['_init_'] ){ for( var j in db['_init_'][i] ){
-        const { name, tables } = db['_init_'][i][j];
-        for( var k in tables ) await modifyDB(data,db,name,tables[k])
+output.ckeckAll = async function(data,db){
+    try { for( let i in db['_init_'] ){ for( let j in db['_init_'][i] ){
+        const { name, tables } = db['_init_'][i][j]; 
+        for( let tbl of tables ) {
+            fs.unlinkSync( db[name][tbl].path );
+            for( let i in db[name][tbl] )
+                delete db[name][tbl][i];
+        }
     }} return { 
         status: 200,
         database: data.db,
         table: data.table,
         message: 'DB Saved' 
     }} catch(e) { return parseError(db,data,e) }
-}
-
-/*--────────────────────────────────────────────────────────────────────────────────────────────--*/
-
-output.reset = async function(data,db){
-    const args = JSON.parse(process.env.MOLLY_DB_ARGS);
-    return new Promise((response,reject)=>{
-        init( args ).then((ndb)=>{ db = ndb; 
-            
-            return response({ 
-                status: 200,
-                database: data.db,
-                table: data.table,
-                message: 'DB Reseted' 
-            });
-    
-        }).catch((e)=>{ response(parseError(db,data,e)) });
-    })
 }
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
