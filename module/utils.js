@@ -306,7 +306,7 @@ output.removeTable = function(data,db){
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
-output.ckeckAll = async function(data,db){
+output.checkAll = async function(data,db){
     try { for( let i in db['_init_'] ){ for( let j in db['_init_'][i] ){
         const { name, tables } = db['_init_'][i][j]; 
         for( let tbl of tables ) {
