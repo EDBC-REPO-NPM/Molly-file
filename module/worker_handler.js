@@ -14,10 +14,21 @@ function Exit(code){ console.log(`worker exit code: ${code}`); }
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
+function getTime(data){
+    const today = new Date();
+    const tomrw = new Date();
+    tomrw.setHours(0); tomrw.setSeconds(0);
+    tomrw.setMinutes(0); tomrw.setMilliseconds(0);
+    tomrw.setDate( tomrw.getDate() + data.cache );
+	return (tomrw.getTime()-today.getTime())/Math.pow(10,3);
+}
+
+/*--────────────────────────────────────────────────────────────────────────────────────────────--*/
+
 function cacheTimeout(data,db){
     setTimeout(() => {
         utils.checkAll(data,db);
-    }, data.cache * 86400 * 1000 );
+    }, getTime(data) );
 }
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
