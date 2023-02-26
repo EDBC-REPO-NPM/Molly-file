@@ -21,6 +21,19 @@ function getStream( options ){
     });
 }
 
+function expirationAge(){
+
+    const today = new Date();
+    const tomrw = new Date();
+
+    tomrw.setDate( tomrw.getDate() + 7 );
+    tomrw.setHours(0); tomrw.setSeconds(0);
+    tomrw.setMinutes(0); tomrw.setMilliseconds(0);
+
+	return (tomrw.getTime()-today.getTime())/Math.pow(10,3);
+
+}
+
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
 output.http = function(req,res){
@@ -38,6 +51,7 @@ output.http = function(req,res){
         /* options */
 
         getStream( options ).then((response)=>{
+            response.headers["Cache-Control"] = `public, max-age=${ expirationAge() }`
             res.writeHead( response.status, response.headers );
             const out = response.stream || response.data;
             out.pipe(res);
