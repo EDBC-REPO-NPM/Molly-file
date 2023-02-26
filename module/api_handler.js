@@ -13,52 +13,23 @@ const os = require('os');
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
-function getStream( options ){
-    return new Promise((response,reject)=>{
-        const { range, mime } = options.headers;
-        file( options ).then(res=>response(res))
-                       .catch(rej=>reject(rej))
-    });
-}
-
-function expirationAge(){
-
-    const today = new Date();
-    const tomrw = new Date();
-
-    tomrw.setDate( tomrw.getDate() + 7 );
-    tomrw.setHours(0); tomrw.setSeconds(0);
-    tomrw.setMinutes(0); tomrw.setMilliseconds(0);
-
-	return (tomrw.getTime()-today.getTime())/Math.pow(10,3);
-
-}
-
-/*--────────────────────────────────────────────────────────────────────────────────────────────--*/
-
 output.http = function(req,res){
     try { const options = new Object();
 
         /* options */
         options.decode       = false;
         options.responseType = 'stream';
-        options.url          = req.url.slice(1);
-        options.range        = req.headers.range  || null;
-        options.method       = req.method         || 'GET';
-        options.headers      = req.headers        || new Object();
-        options.hash         = req.headers.hash   || crypto.SHA256(options.url).toString(); 
+        options.method       = req.method        || 'GET';
+        options.headers      = req.headers       || new Object();
+
+        const trg = `${req.url}|${req.headers.range}|${req.method}`;
+
+        options.url          = Buffer.from(req.url.slice(1),'base64').toString();
+        options.hash         = req.headers.hash  || crypto.SHA256(trg).toString(); 
         options.path         = path.join( os.tmpdir(), options.hash );
         /* options */
 
-        getStream( options ).then((response)=>{
-            response.headers["Cache-Control"] = `public, max-age=${ expirationAge() }`
-            res.writeHead( response.status, response.headers );
-            const out = response.stream || response.data;
-            out.pipe(res);
-        }).catch(e=>{ 
-            res.writeHead(404,{'Content-Type': 'text/html'});
-            return res.end(`error: ${e}`);
-        });
+        file( req,res,options )
           
     } catch(e) {
         res.writeHead(404,{'Content-Type': 'text/html'});
