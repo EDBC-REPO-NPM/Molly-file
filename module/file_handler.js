@@ -15,7 +15,7 @@ function expirationAge(){
     tomrw.setDate( tomrw.getDate() + 1 );
     tomrw.setHours(0); tomrw.setSeconds(0);
     tomrw.setMinutes(0); tomrw.setMilliseconds(0);
-	return (tomrw.getTime()-today.getTime())/Math.pow(10,3);
+	return parseInt((tomrw.getTime()-today.getTime())/Math.pow(10,3));
 }
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
