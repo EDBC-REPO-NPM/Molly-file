@@ -28,8 +28,8 @@ function multipipe( input, ...output ){
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
 function send( db,arg,msg ){
-    const empty = '{ "status":"404", "message":"empty data" }';
-    const error = '{ "status":"404", "message":"error data" }';
+    const empty = { status:404, message:"empty data" };
+    const error = { status:404, message:"error data" };
     return new Promise((response,reject)=>{
         try {memory(arg,msg,db)
             .then(x=> response(x||empty) )

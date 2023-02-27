@@ -4,8 +4,7 @@
   "scripts": { "start": "node main" },
   "dependencies": { 
     "molly-fetch": "^1.1.2",
-    "crypto-js": "^4.1.1",
-    "ws": "^8.11.0"
+    "crypto-js": "^4.1.1"
   },
   "author": "becerraEnamneul",
   "name": "molly-file",

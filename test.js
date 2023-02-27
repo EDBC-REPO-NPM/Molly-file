@@ -1,5 +1,3 @@
 const db = require('./main.js');
 const path = require('path');
-const mdb = new db({
-    path: path.join(__dirname,'db'),
-});
+const mdb = new db();
