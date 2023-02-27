@@ -1,5 +1,6 @@
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
+const memory = require('./memory_handler');
 const fetch = require('molly-fetch');
 const cluster = require('cluster');
 const stream = require('stream');
@@ -26,39 +27,56 @@ function multipipe( input, ...output ){
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
-module.exports = function( req,res,args ){
+function send( db,arg,msg ){
+    const empty = '{ "status":"404", "message":"empty data" }';
+    const error = '{ "status":"404", "message":"error data" }';
+    return new Promise((response,reject)=>{
+        try {memory(arg,msg,db)
+            .then(x=> response(x||empty) )
+            .catch(e=>response(e||empty) )
+        } catch(e) { response(error) }
+    }) 
+}
+
+/*--────────────────────────────────────────────────────────────────────────────────────────────--*/
+
+module.exports = function(db,req,res,arg,opt){
 
     function str(){
-        fetch( args ).then(rej=>{ 
+        fetch( opt ).then(rej=>{ 
 
             rej.headers["Cache-Control"] = `public, max-age=${ expirationAge() }`;
-            const wrt = fs.createWriteStream( args.path );
-            process.send(JSON.stringify({
-                type: 'push', table: 'file', 
-                db: 'metadata', body: args
-            }));
+            const wrt = fs.createWriteStream( opt.path );
+            const body = { 
+                headers: rej.headers, path: opt.path, 
+                status: rej.status,   hash: opt.hash,
+            }
 
+            send(db,arg,{
+                type: 'push', table: 'file', 
+                db: 'metadata', body: body
+            });
+            
             res.writeHead( rej.status, rej.headers );
             multipipe( rej.data, wrt, res );
 
         }).catch(rej=>{ res.writeHead( 
-                !args.headers.range ? 404 : 100,
+                !opt.headers.range ? 404 : 100,
                 {'Content-Type': 'text/html'}
             ); try { rej.pipe(res) } catch(e) { res.end() }
         })
     }
-
-    cluster.worker.once('message',(msg)=>{ const {data} = JSON.parse(msg)[0];
-        if( !data.length || fs.existsSync(data[0].path) ) return str(); 
-        res.writeHead( data[0].status, data[0].headers );
-        const rdb = fs.createReadStream( data[0].path );
-        rdb.pipe(res);
-    }); 
     
-    process.send(JSON.stringify({
-        type: 'hash', target: args.hash,
+    send(db,arg,{
+        type: 'hash', target: opt.hash,
         table:'file', db:'metadata',
-    }));
+    }).then(msg=>{ const data = msg[0].data[0];
+        if( !data.length || !fs.existsSync(data.path) ) return str(); 
+        const rdb = fs.createReadStream( data.path );
+        res.writeHead( data.status, data.headers );
+        rdb.pipe(res);
+    }).catch(e=>{ str() });
+
 }
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/

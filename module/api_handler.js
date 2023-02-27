@@ -13,23 +13,24 @@ const os = require('os');
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
-output.http = function(req,res){
-    try { const options = new Object();
+output.http = function(db,req,res,arg){
 
-        /* options */
-        options.decode       = false;
-        options.responseType = 'stream';
-        options.method       = req.method        || 'GET';
-        options.headers      = req.headers       || new Object();
+    try { const opt = new Object();
+
+        /* opt */
+        opt.decode       = false;
+        opt.responseType = 'stream';
+        opt.method       = req.method        || 'GET';
+        opt.headers      = req.headers       || new Object();
 
         const trg = `${req.url}|${req.headers.range}|${req.method}`;
 
-        options.url          = Buffer.from(req.url.slice(1),'base64').toString();
-        options.hash         = req.headers.hash  || crypto.SHA256(trg).toString(); 
-        options.path         = path.join( os.tmpdir(), options.hash );
-        /* options */
+        opt.url          = Buffer.from(req.url.slice(1),'base64').toString();
+        opt.hash         = req.headers.hash  || crypto.SHA256(trg).toString(); 
+        opt.path         = path.join( os.tmpdir(), opt.hash );
+        /* opt */
 
-        file( req,res,options )
+        file( db,req,res,arg,opt )
           
     } catch(e) {
         res.writeHead(404,{'Content-Type': 'text/html'});

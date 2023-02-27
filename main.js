@@ -20,11 +20,8 @@ class molly_db{
     constructor( opt ){
         if(opt.pass) this.pass = opt.pass; this.port = opt.port || 27016;
         const dir = path.join(__dirname,'/module/worker_handler.js');
-
         this.host = opt.host         || '127.0.0.1';
         this.cache = opt.cacheTime   || 1;
-        this.threads = opt.thread    || 1;
-        
         return require(dir)(this);
     }
 }
