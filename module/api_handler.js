@@ -33,7 +33,7 @@ output.http = function(db,req,res,arg){
         file( db,req,res,arg,opt )
           
     } catch(e) {
-        res.writeHead(404,{'Content-Type': 'text/html'});
+        res.writeHead(404,{'content-type': 'text/html'});
         if( e.message ) 
              return res.end(`error: not a valid URL`);
         else return res.end(`error: ${e}`);

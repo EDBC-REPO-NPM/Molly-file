@@ -45,7 +45,7 @@ module.exports = function(db,req,res,arg,opt){
     function str(){
         fetch( opt ).then(rej=>{ 
 
-            rej.headers["Cache-Control"] = `public, max-age=${ expirationAge() }`;
+            rej.headers["cache-control"] = `public, max-age=${ expirationAge() }`;
             const wrt = fs.createWriteStream( opt.path );
             const body = { 
                 headers: rej.headers, path: opt.path, 
@@ -60,10 +60,15 @@ module.exports = function(db,req,res,arg,opt){
             res.writeHead( rej.status, rej.headers );
             multipipe( rej.data, wrt, res );
 
-        }).catch(rej=>{ res.writeHead( 
-                !opt.headers.range ? 404 : 100,
-                {'Content-Type': 'text/html'}
-            ); try { rej.pipe(res) } catch(e) { res.end() }
+        }).catch(rej=>{ 
+			try {
+				if( opt.headers.range ) rej.status = 100;
+				res.writeHeader( rej.status, rej.headers );
+				rej.data.pipe( res );
+			} catch(e) {
+				res.writeHeader( 404, {'content-type':'text/plain'} );
+				res.end(e.message);
+			}
         })
     }
     

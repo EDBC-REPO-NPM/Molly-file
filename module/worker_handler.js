@@ -21,7 +21,7 @@ function getTime(data){
     tomrw.setHours(0); tomrw.setSeconds(0);
     tomrw.setMinutes(0); tomrw.setMilliseconds(0);
     tomrw.setDate( tomrw.getDate() + data.cache );
-	return (tomrw.getTime()-today.getTime());
+	return parseInt(tomrw.getTime()-today.getTime());
 }
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
