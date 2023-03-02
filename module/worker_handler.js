@@ -34,7 +34,8 @@ function cacheTimeout(data,db){
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
-module.exports = (arg)=>{ init( arg ).then((db)=>{ 
+module.exports = (arg)=>{ 
+    init( arg ).then((db)=>{ 
 
         const server = http.createServer((req,res)=>app.http(db,req,res,arg));
         server.listen( arg.port, arg.host, ()=>{

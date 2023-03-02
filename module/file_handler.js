@@ -34,7 +34,7 @@ function send( db,arg,msg ){
         try {memory(arg,msg,db)
             .then(x=> response(x||empty) )
             .catch(e=>response(e||empty) )
-        } catch(e) { response(error) }
+        } catch(e) { reject(error) }
     }) 
 }
 
@@ -55,12 +55,16 @@ module.exports = function(db,req,res,arg,opt){
             send(db,arg,{
                 type: 'push', table: 'file', 
                 db: 'metadata', body: body
+            }).then(()=>{
+                res.writeHead( rej.status, rej.headers );
+                multipipe( rej.data, wrt, res );
+            }).catch(e=>{
+				res.writeHeader( 404, {'content-type':'text/plain'} );
+				res.end(e);
             });
             
-            res.writeHead( rej.status, rej.headers );
-            multipipe( rej.data, wrt, res );
 
-        }).catch(rej=>{ 
+        }).catch(rej=>{
 			try {
 				if( opt.headers.range ) rej.status = 100;
 				res.writeHeader( rej.status, rej.headers );
@@ -75,10 +79,10 @@ module.exports = function(db,req,res,arg,opt){
     send(db,arg,{
         type: 'hash', target: opt.hash,
         table:'file', db:'metadata',
-    }).then(msg=>{ const data = msg[0].data[0];
-        if( !data.length || !fs.existsSync(data.path) ) return str(); 
-        const rdb = fs.createReadStream( data.path );
-        res.writeHead( data.status, data.headers );
+    }).then(msg=>{ const data = msg[0].data;
+        if( !data.length || !fs.existsSync(data[0].path) ) return str(); 
+        const rdb = fs.createReadStream( data[0].path );
+        res.writeHead( data[0].status,data[0].headers );
         rdb.pipe(res);
     }).catch(e=>{ str() });
 

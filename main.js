@@ -1,7 +1,7 @@
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
 const path = require('path');
-const url = require('url'); 
+const url = require('url');
 const fs = require('fs');
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
@@ -21,7 +21,7 @@ class molly_db{
         const dir = path.join(__dirname,'/module/worker_handler.js');
         this.host = opt?.host       || '127.0.0.1';
         this.port = opt?.port       || 27016;
-        this.cache = opt?.cacheTime || 1;
+        this.cache = opt?.cacheTime || 3;
         return require(dir)(this);
     }
 }
