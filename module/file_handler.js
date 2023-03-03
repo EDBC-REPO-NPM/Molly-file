@@ -66,9 +66,9 @@ module.exports = function(db,req,res,arg,opt){
 
         }).catch(rej=>{
 			try {
-				if( opt.headers.range ) rej.status = 100;
-				res.writeHeader( rej.status, rej.headers );
-				rej.data.pipe( res );
+				if( url.headers.range && !(/text/i).test(url.headers['content-type']) ) 
+					rej.status = 100; res.writeHeader( rej.status, rej.headers );
+					rej.data.pipe( res );
 			} catch(e) {
 				res.writeHeader( 404, {'content-type':'text/plain'} );
 				res.end(e.message);
