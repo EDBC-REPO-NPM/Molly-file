@@ -71,7 +71,7 @@ module.exports = function(db,req,res,arg,opt){
 					rej.data.pipe( res );
 			} catch(e) {
 				res.writeHeader( 404, {'content-type':'text/plain'} );
-				res.end(e.message);
+				res.end(rej.message);
 			}
         })
     }
