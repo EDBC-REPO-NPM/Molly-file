@@ -41,7 +41,6 @@ function isChunkFinished( _data ){
         let size = _data.headers['content-length'];
         let prev = fs.statSync(_data.path).size;
         let i = 0; while( true ){
-            console.log( size, prev, i, size == prev );
             if( size == prev ) return response();
             if( !size || !prev ) return reject();
             await wait(100); if( i>3 ) return reject();
