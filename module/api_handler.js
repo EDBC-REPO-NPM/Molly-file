@@ -19,6 +19,7 @@ output.http = function(db,req,res,arg){
 
         /* opt */
         opt.decode       = false;
+        opt.timeout      = 1000 * 60;
         opt.responseType = 'stream';
         opt.method       = req.method        || 'GET';
         opt.headers      = req.headers       || new Object();

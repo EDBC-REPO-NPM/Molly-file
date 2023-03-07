@@ -9,17 +9,6 @@ const fs = require('fs');
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
-function expirationAge(){
-    const today = new Date();
-    const tomrw = new Date();
-    tomrw.setDate( tomrw.getDate() + 1 );
-    tomrw.setHours(0); tomrw.setSeconds(0);
-    tomrw.setMinutes(0); tomrw.setMilliseconds(0);
-	return parseInt((tomrw.getTime()-today.getTime())/Math.pow(10,3));
-}
-
-/*--────────────────────────────────────────────────────────────────────────────────────────────--*/
-
 function multipipe( input, ...output ){
     input.on('data',(chunk)=>{ for( let out of output ) out.write(chunk) });
     input.on('close',()=>{ for( let out of output ) out.end() });
@@ -40,12 +29,36 @@ function send( db,arg,msg ){
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
+function isChunkFinished( _data ){
+    return new Promise(async(response,reject)=>{
+
+        function wait(time){
+            return new Promise((response,reject)=>{
+                setTimeout(response,time);
+            });
+        } 
+
+        let size = _data.headers['content-length'];
+        let prev = fs.statSync(_data.path).size;
+        let i = 0; while( true ){
+            console.log( size, prev, i, size == prev );
+            if( size == prev ) return response();
+            if( !size || !prev ) return reject();
+            await wait(100); if( i>3 ) return reject();
+            if( prev == fs.statSync(_data.path).size ) 
+                i++; prev = fs.statSync(_data.path).size;
+        }
+
+    });
+}
+
+/*--────────────────────────────────────────────────────────────────────────────────────────────--*/
+
 module.exports = function(db,req,res,arg,opt){
 
     function str(){
         fetch( opt ).then(rej=>{ 
 
-            rej.headers["cache-control"] = `public, max-age=${ expirationAge() }`;
             const wrt = fs.createWriteStream( opt.path );
             const body = { 
                 headers: rej.headers, path: opt.path, 
@@ -60,9 +73,8 @@ module.exports = function(db,req,res,arg,opt){
                 multipipe( rej.data, wrt, res );
             }).catch(e=>{
 				res.writeHeader( 404, {'content-type':'text/plain'} );
-				res.end(e);
+				res.end(e.message);
             });
-            
 
         }).catch(rej=>{
 			try {
@@ -77,13 +89,16 @@ module.exports = function(db,req,res,arg,opt){
     }
     
     send(db,arg,{
-        type: 'hash', target: opt.hash,
         table:'file', db:'metadata',
+        type: 'hash', target: opt.hash,
     }).then(msg=>{ const data = msg[0].data;
-        if( !data.length || !fs.existsSync(data[0].path) ) return str(); 
-        const rdb = fs.createReadStream( data[0].path );
-        res.writeHead( data[0].status,data[0].headers );
-        rdb.pipe(res);
+        if( !data.length || !fs.existsSync(data[0].path) ) 
+            return str(); isChunkFinished( data[0] )
+        .then(()=>{
+            const rdb = fs.createReadStream( data[0].path );
+            res.writeHead( data[0].status,data[0].headers );
+            rdb.pipe(res);
+        }).catch(()=>{ str() })
     }).catch(e=>{ str() });
 
 }

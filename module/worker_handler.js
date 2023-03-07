@@ -15,12 +15,12 @@ function Exit(code){ console.log(`worker exit code: ${code}`); }
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
 
-function getTime(data){
+function getTime(time){
     const today = new Date();
     const tomrw = new Date();
     tomrw.setHours(0); tomrw.setSeconds(0);
+    tomrw.setDate( tomrw.getDate() + time );
     tomrw.setMinutes(0); tomrw.setMilliseconds(0);
-    tomrw.setDate( tomrw.getDate() + data.cache );
 	return parseInt(tomrw.getTime()-today.getTime());
 }
 
@@ -29,7 +29,7 @@ function getTime(data){
 function cacheTimeout(data,db){
     setTimeout(() => {
         utils.checkAll(data,db);
-    }, getTime(data) );
+    }, getTime(data.cache) );
 }
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/

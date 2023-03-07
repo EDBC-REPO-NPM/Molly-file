@@ -5,12 +5,12 @@
     "start": "node main"
   },
   "dependencies": {
-    "molly-fetch": "^1.1.10",
+    "molly-fetch": "^1.1.11",
     "crypto-js": "^4.1.1"
   },
   "author": "becerraEnamneul",
   "name": "molly-file",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "main": "main.js",
   "license": "MIT",
   "keywords": [

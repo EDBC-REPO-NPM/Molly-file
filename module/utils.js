@@ -309,10 +309,9 @@ output.removeTable = function(data,db){
 output.checkAll = async function(data,db){
     try { for( let i in db['_init_'] ){ for( let j in db['_init_'][i] ){
         const { name, tables } = db['_init_'][i][j]; 
-        for( let tbl of tables ) {
-            fs.unlinkSync( db[name][tbl].path );
-            for( let i in db[name][tbl] )
-                delete db[name][tbl][i];
+        for( let tbl of tables ) for( let i in db[name][tbl] ) {
+            fs.unlinkSync( db[name][tbl][i].headers['x-molly-path'] );
+            delete db[name][tbl][i];
         }
     }} return { 
         status: 200,
