@@ -12,6 +12,7 @@ const fs = require('fs');
 function multipipe( input, ...output ){
     input.on('data',(chunk)=>{ for( let out of output ) out.write(chunk) });
     input.on('close',()=>{ for( let out of output ) out.end() });
+    input.on('error',()=>{ for( let out of output ) out.end() });
 }
 
 /*--────────────────────────────────────────────────────────────────────────────────────────────--*/
