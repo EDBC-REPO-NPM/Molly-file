@@ -19,6 +19,7 @@ function config( _config ) {
 class molly_db{
     constructor( opt ){
         const dir = path.join(__dirname,'/module/worker_handler.js');
+        this.timeout = opt?.timeout || (1000 * 60);
         this.host = opt?.host       || '127.0.0.1';
         this.port = opt?.port       || 27016;
         this.cache = opt?.cacheTime || 3;

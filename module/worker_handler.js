@@ -39,6 +39,7 @@ module.exports = (arg)=>{
 
         const server = http.createServer((req,res)=>app.http(db,req,res,arg));
         server.listen( arg.port, arg.host, ()=>{
+            server.timeout = arg.timeout;
             console.log(JSON.stringify({
                 name: 'molly-file', protocol: 'HTTP', 
                 port: arg.port, host: arg.host,
